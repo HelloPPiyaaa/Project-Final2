@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
 import axios, { AxiosResponse } from "axios";
 import Cookies from "js-cookie";
@@ -12,13 +12,13 @@ interface Report {
   createdAt: string;
   reportedBy: {
     _id: string;
-    firstname: string;
+    fullname: string;
   };
   post: {
     _id: string;
     user: {
       _id: string;
-      firstname: string;
+      fullname: string;
       profile_picture: string;
     };
     image: string;
@@ -69,6 +69,10 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
       throw error;
     }
   };
+
+  useEffect(() => {
+    console.log("report", report);
+  }, [report]);
 
   const deletePostAndVerifyReport = async (
     reportId: string,
@@ -151,7 +155,7 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
                   textDecoration: "none",
                 }}
               >
-                {report.reportedBy.firstname}
+                {report.reportedBy.fullname}
               </span>{" "}
               {`ได้รายงานโพสของ`}{" "}
               <span
@@ -162,7 +166,7 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
                   textDecoration: "none",
                 }}
               >
-                {report.post.user.firstname}
+                {report.post.user.fullname}
               </span>{" "}
               : {report.reason || "No Title"}
             </p>
@@ -174,7 +178,7 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
               }}
             >
               <div className="profile-photo">
-                <img src={report.post.user.profile_picture || ""} alt="" />
+                {/* <img src={report.post.user.profile_picture || ""} alt="" /> */}
               </div>
               <span
                 onClick={() => navigate(`/profile/${report.post.user._id}`)}
@@ -184,7 +188,7 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
                   textDecoration: "none",
                 }}
               >
-                {report.post.user.firstname}
+                {report.post.user.fullname}
               </span>
             </span>
             <img
@@ -193,9 +197,9 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
               style={{ width: "100%", height: "auto", borderRadius: "0.5rem" }}
             />
             <b>{report.post.topic}</b>
-            <div>{report.post.category.map((e) => e)}</div>
+            {/* <div>{report.post.category.map((e) => e)}</div> */}
             <p>{report.post.detail}</p>
-            {report.post.contentWithImages.map((e: any, idx: number) => {
+            {/* {report.post.contentWithImages.map((e: any, idx: number) => {
               return (
                 <div
                   key={idx}
@@ -217,7 +221,7 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
                   <p>{e.content}</p>
                 </div>
               );
-            })}
+            })} */}
           </div>
         ) : (
           <p>No report selected.</p>

@@ -41,13 +41,13 @@ interface Report {
   createdAt: string;
   reportedBy: {
     _id: string;
-    firstname: string;
+    fullname: string;
   };
   post: {
     _id: string;
     user: {
       _id: string;
-      firstname: string;
+      fullname: string;
       profile_picture: string;
     };
     image: string;
@@ -88,7 +88,6 @@ const AdminHome: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   const handleShowModal = (report: any) => {
-    console.log("report on modal:", report);
     setSelectedReport(report);
     setShowModal(true);
   };
@@ -101,8 +100,7 @@ const AdminHome: React.FC = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/api/report");
-        console.log(response.data); // Log the data to check the structure
+        const response = await axios.get(`${API_BASE_URL}/api/report`);
         setReports(response.data);
       } catch (error) {
         console.error("Error fetching reports:", error);
@@ -147,15 +145,6 @@ const AdminHome: React.FC = () => {
 
     return growthData;
   };
-
-  const growthData = [
-    { month: "มกราคม", numberOfPosts: 20 },
-    { month: "กุมภาพันธ์", numberOfPosts: 30 },
-    { month: "มีนาคม", numberOfPosts: 40 },
-    { month: "เมษยน", numberOfPosts: 30 },
-    { month: "พฤษภาคม", numberOfPosts: 35 },
-    { month: "มิถุนายน", numberOfPosts: 40 },
-  ];
 
   useEffect(() => {
     const sideMenu = document.querySelector("aside");
@@ -760,7 +749,7 @@ const AdminHome: React.FC = () => {
                         {reports.length > 0 ? (
                           reports.map((report) => (
                             <tr key={report._id}>
-                              <td>{report.reportedBy.firstname}</td>
+                              <td>{report.reportedBy.fullname}</td>
                               <td>
                                 {new Date(
                                   report.createdAt
@@ -828,7 +817,7 @@ const AdminHome: React.FC = () => {
                           reports.map((report) =>
                             !report.verified ? (
                               <tr key={report._id}>
-                                <td>{report.reportedBy.firstname}</td>
+                                <td>{report.reportedBy.fullname}</td>
                                 <td>
                                   {new Date(
                                     report.createdAt
@@ -935,7 +924,7 @@ const AdminHome: React.FC = () => {
                                 report.verified &&
                                 report.status === "Verified" ? (
                                   <tr key={report._id}>
-                                    <td>{report.reportedBy.firstname}</td>
+                                    <td>{report.reportedBy.fullname}</td>
                                     <td>
                                       {new Date(
                                         report.createdAt
@@ -989,7 +978,7 @@ const AdminHome: React.FC = () => {
                             reports.map((report) =>
                               report.status === "Decline" ? (
                                 <tr key={report._id}>
-                                  <td>{report.reportedBy.firstname}</td>
+                                  <td>{report.reportedBy.fullname}</td>
                                   <td>
                                     {new Date(
                                       report.createdAt

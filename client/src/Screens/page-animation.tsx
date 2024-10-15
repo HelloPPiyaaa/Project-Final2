@@ -5,7 +5,7 @@ interface AnimationWrapperProps {
   keyValue?: string | number;
   initial?: { [key: string]: any };
   animate?: { [key: string]: any };
-  transition?: { duration?: number; delay?: number; };
+  transition?: { duration?: number; delay?: number };
   className?: string;
 }
 const AnimationWrapper: React.FC<AnimationWrapperProps> = ({

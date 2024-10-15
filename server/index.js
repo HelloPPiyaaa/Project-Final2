@@ -192,7 +192,11 @@ app.post("/search-blogs", (req, res) => {
 
   if (tag) {
     const lowerCaseTag = tag.toLowerCase();
-    findQuery = { tags: lowerCaseTag, draft: false, blog_id: {$ne: eliminate_blog} };
+    findQuery = {
+      tags: lowerCaseTag,
+      draft: false,
+      blog_id: { $ne: eliminate_blog },
+    };
   } else if (query) {
     findQuery = { draft: false, topic: new RegExp(query, "i") };
   } else if (author) {

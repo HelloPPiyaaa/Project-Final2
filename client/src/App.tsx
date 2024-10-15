@@ -44,7 +44,6 @@ import ProfilePage from "./Screens/ProfilePage";
 import BlogPage from "./Screens/blog.page";
 import DashboardUser from "./Screens/DashboardUser";
 
-
 interface UserContextType {
   userAuth: {
     access_token: string | null;

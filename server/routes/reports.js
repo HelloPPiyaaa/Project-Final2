@@ -7,26 +7,54 @@ const Like = require("../models/like");
 
 router.get("/", async (req, res) => {
   try {
-    const reports = await Report.find()
+    const reports = await Report.find({})
       .populate({
         path: "reportedBy",
-        select: "_id firstname",
+        select: "_id fullname profile_picture",
       })
       .populate({
         path: "post",
-        select: "user image topic detail category contentWithImages",
+        select: "topic detail category author",
         populate: {
-          path: "user",
-          select: "_id firstname profile_picture",
+          path: "author",
+          select: "_id fullname profile_picture",
         },
       });
-    res.status(200).json(reports);
+
+    const formattedReports = reports.map((report) => ({
+      _id: report._id,
+      reason: report.reason,
+      verified: report.verified,
+      status: report.status,
+      createdAt: report.createdAt,
+      reportedBy: {
+        _id: report.reportedBy._id,
+        fullname: report.reportedBy.fullname,
+        profile_picture: report.reportedBy.profile_picture,
+      },
+      post: {
+        _id: report.post._id,
+        user: {
+          _id: report.post.author._id,
+          fullname: report.post.author.fullname,
+          profile_picture: report.post.author.profile_picture,
+        },
+        topic: report.post.topic,
+        detail: report.post.detail,
+        category: report.post.category,
+      },
+    }));
+
+    console.log(JSON.stringify(formattedReports, null, 2));
+
+    res.status(200).json(formattedReports);
   } catch (error) {
-    console.error("Failed to fetch reports:", error);
+    console.error("Error fetching reports:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
+// Add a new report
 router.post("/add", async (req, res) => {
   const { postId, reason, reportedBy } = req.body;
 
@@ -44,7 +72,7 @@ router.post("/add", async (req, res) => {
 
     const reportData = {
       post: postId,
-      reason: reason,
+      reason,
       verified: false,
       reportedBy: reportedBy || null,
     };
@@ -54,7 +82,7 @@ router.post("/add", async (req, res) => {
 
     res.status(201).json({
       message: "Report submitted successfully.",
-      report: report,
+      report,
     });
   } catch (error) {
     console.error("Failed to report post:", error);
@@ -62,6 +90,7 @@ router.post("/add", async (req, res) => {
   }
 });
 
+// Verify a report
 router.patch("/:id/verify", async (req, res) => {
   const { verified } = req.body;
   try {
@@ -69,9 +98,11 @@ router.patch("/:id/verify", async (req, res) => {
     if (!report) {
       return res.status(404).json({ message: "Report not found" });
     }
+
     report.verified = verified;
-    report.status = "Verified";
+    report.status = verified ? "Verified" : report.status;
     await report.save();
+
     res.status(200).json({ message: "Report updated", report });
   } catch (error) {
     console.error("Error updating report:", error);
@@ -81,10 +112,15 @@ router.patch("/:id/verify", async (req, res) => {
   }
 });
 
+// Delete post associated with a report and verify the report
 router.delete("/:reportId/deletePost", async (req, res) => {
-  try {
-    const { postId } = req.body;
+  const { postId } = req.body;
 
+  if (!postId) {
+    return res.status(400).json({ message: "Post ID is required to delete." });
+  }
+
+  try {
     const report = await Report.findById(req.params.reportId);
     if (!report) {
       return res.status(404).json({ message: "Report not found." });
@@ -101,12 +137,12 @@ router.delete("/:reportId/deletePost", async (req, res) => {
     await Post.deleteOne({ _id: post._id });
 
     report.verified = true;
-    report.status = "Decline";
+    report.status = "Declined";
     await report.save();
 
-    res
-      .status(200)
-      .json({ message: "Post deleted successfully and report verified." });
+    res.status(200).json({
+      message: "Post deleted successfully and report marked as declined.",
+    });
   } catch (error) {
     console.error("Error deleting post and updating report:", error);
     res
