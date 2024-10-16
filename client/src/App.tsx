@@ -14,11 +14,8 @@ import EditProfile from "./Screens/edit-profile";
 import RegisterAdmin from "./Screens/Admin/adminRegister";
 import Writepost from "./Screens/post";
 // import Content from "./Screens/Content";
-import LoginAdmin from "./Screens/Admin/adminLogin";
 import AdminHome from "./Screens/Admin/adminHome";
-import Setting from "./Screens/setting1";
-import Setting2 from "./Screens/setting2";
-import Setting3 from "./Screens/setting3";
+
 import Sidebar from "./Screens/sidebar";
 import Settingtest from "./Screens/settingtest";
 import Category from "./Screens/category";
@@ -43,6 +40,10 @@ import PageNotFound from "./Screens/404";
 import ProfilePage from "./Screens/ProfilePage";
 import BlogPage from "./Screens/blog.page";
 import DashboardUser from "./Screens/DashboardUser";
+import LoginAdmin from "./Screens/Admin/adminLogin";
+// import ForgotPassword from './Screens/Admin/ForgotPassword';
+// import VerifyOTP from "./Screens/Admin/VerifyOTP";
+// import ResetPassword from './Screens/Admin/ResetPassword';
 
 
 interface UserContextType {
@@ -96,7 +97,7 @@ function App() {
               path="/signup"
               element={<UserAuthForm type="สมัครสมาชิก" />}
             />
-            <Route index element={<HomePage />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/search/:query" element={<SearchPage />} />
             <Route path="*" element={<PageNotFound />} />
             <Route path="/user/:id" element={<ProfilePage />} />
@@ -108,9 +109,6 @@ function App() {
             <Route path="/posts" element={<Post />} />
             <Route path="/writepost" element={<Writepost />} />
             <Route path="/editpost/:id" element={<EditPost />} />
-            <Route path="/settings/edit-profile" element={<Setting />} />
-            <Route path="//login-security" element={<Setting2 />} />
-            <Route path="/setting3" element={<Setting3 />} />
             <Route path="/sidebar" element={<Sidebar />} />
             <Route path="/st" element={<Settingtest />} />
             <Route path="/footer" element={<Footer />} />
@@ -124,13 +122,16 @@ function App() {
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin/register" element={<RegisterAdmin />} />
-          <Route path="/admin/login" element={<LoginAdmin />} />
-          <Route path="/admin/:id" element={<AdminHome />} />
+          <Route path="/admin/login" element={<LoginAdmin type="เข้าสู่ระบบแอดมิน"  />} />
+          <Route path="/admin" element={<AdminHome />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
-            path="/reset_password/:id/:token"
+            path="/reset_password/:type/:id/:token"
             element={<ResetPassword />}
           />
+             {/* <Route path="/forgot-password" element={<ForgotPassword />} />
+             <Route path="/verify-otp" element={<VerifyOTP />} />
+             <Route path="/reset-password" element={<ResetPassword />} /> */}
           <Route path="/chats" element={<Chat />} />
           <Route path="/nav" element={<Navbar2 />} />
         </Routes>
