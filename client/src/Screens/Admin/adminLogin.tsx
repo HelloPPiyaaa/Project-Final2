@@ -1,16 +1,17 @@
-import { useState, useContext } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
+import logohead from "../../pic/logo-headV2.png";
+import "../../misc/login.css";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../App";
 import toast from "react-hot-toast";
 import { storeInSession } from "../../common/session";
-import logohead from "../../pic/logo-headV2.png";
-import "../../misc/login.css";
 
 interface LoginPageProps {
   type: string;
 }
 
 const Login: React.FC<LoginPageProps> = ({ type }) => {
+  const authForm = useRef<HTMLFormElement>(null);
   const API_URL = "http://localhost:3001";
   const navigate = useNavigate();
 
@@ -21,6 +22,7 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const userAuthThroughServer = (
     serverRoute: string,
@@ -42,9 +44,10 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
         return response.json();
       })
       .then((data) => {
-        storeInSession("user", JSON.stringify(data));
-        setUserAuth(data);
+        storeInSession("user", JSON.stringify(data)); // เก็บข้อมูลใน session
+        setUserAuth(data); // อัปเดต context ของผู้ใช้
 
+        // นำทางไปยังหน้าที่เหมาะสมตามบทบาท
         if (data.role === "admin") {
           navigate("/admin");
         } else {
@@ -57,9 +60,50 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+    event.preventDefault(); // ป้องกันไม่ให้หน้ารีเฟรช
+
+    // ส่งข้อมูลฟอร์มไปยัง server
     userAuthThroughServer("/login", { email, password });
   };
+
+  useEffect(() => {
+    const toggleBtns = document.querySelectorAll<HTMLAnchorElement>(".toggle");
+    const mainElement = document.querySelector<HTMLElement>("main");
+
+    const handleFocus = (inp: HTMLInputElement) => {
+      inp.classList.add("active");
+    };
+
+    const handleBlur = (inp: HTMLInputElement) => {
+      if (inp.value === "") {
+        inp.classList.remove("active");
+      }
+    };
+
+    const handleToggleClick = () => {
+      mainElement?.classList.toggle("sign-up-mode");
+    };
+
+    toggleBtns.forEach((btn) =>
+      btn.addEventListener("click", handleToggleClick)
+    );
+
+    const inputs = document.querySelectorAll<HTMLInputElement>(".input-field");
+    inputs.forEach((inp) => {
+      inp.addEventListener("focus", () => handleFocus(inp));
+      inp.addEventListener("blur", () => handleBlur(inp));
+    });
+
+    return () => {
+      toggleBtns.forEach((btn) =>
+        btn.removeEventListener("click", handleToggleClick)
+      );
+      inputs.forEach((inp) => {
+        inp.removeEventListener("focus", () => handleFocus(inp));
+        inp.removeEventListener("blur", () => handleBlur(inp));
+      });
+    };
+  }, []);
 
   return (
     <div className="login-container">
@@ -71,13 +115,14 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
                 autoComplete="off"
                 className="sign-in-form"
                 onSubmit={handleSubmit}
+                ref={authForm}
               >
                 <div className="logo">
                   <img src={logohead} alt="easyclass" />
                 </div>
 
                 <div className="heading">
-                  <h4>Admin Login</h4>
+                  <h2>ยินดีต้อนรับผู้ดูแลระบบ</h2>
                 </div>
 
                 <div className="actual-form">
@@ -91,7 +136,7 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
-                    <label className="label-login">Email</label>
+                    <label className="label-login">อีเมล</label>
                   </div>
                   <div className="input-wrap">
                     <input
@@ -103,16 +148,15 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                     />
-                    <label className="label-login">Password</label>
+                    <label className="label-login">รหัสผ่าน</label>
                   </div>
 
                   <button type="submit" className="sign-btn">
-                    Login
+                    เข้าสู่ระบบ
                   </button>
 
                   <p className="text">
-                    <Link to="/forgot-password">Forgot password</Link>{" "}
-                    
+                    <Link to="/forgot-password">ลืมรหัสผ่าน</Link> ในการเข้าสู่ระบบ
                   </p>
                 </div>
               </form>
