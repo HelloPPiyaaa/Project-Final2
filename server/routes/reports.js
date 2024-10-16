@@ -57,6 +57,7 @@ router.post("/add", async (req, res) => {
       message: "Report submitted successfully.",
       report,
     });
+    return "Success";
   } catch (error) {
     console.error("Failed to report post:", error);
     res.status(500).json({ message: "Internal Server Error" });

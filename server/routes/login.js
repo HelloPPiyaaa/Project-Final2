@@ -9,6 +9,7 @@ const formDatatoSend = (user) => {
   const access_token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
   return {
     access_token,
+    _id: user._id,
     profile_picture: user.profile_picture,
     username: user.username,
     fullname: user.fullname,
@@ -108,7 +109,6 @@ router.post("/", (req, res) => {
   console.log("Password:", password);
 
   User.findOne({ email: email })
-
     .then((user) => {
       if (!user) {
         return res.status(403).json({ error: "ไม่พบผู้ใช้" });
@@ -124,16 +124,15 @@ router.post("/", (req, res) => {
           if (!result) {
             return res.status(403).json({ error: "รหัสผ่านไม่ถูกต้อง" });
           } else {
+            console.log("formDatatoSend(user)", formDatatoSend(user));
             return res.status(200).json(formDatatoSend(user));
           }
         });
       } else {
-        return res
-          .status(403)
-          .json({
-            error:
-              "บัญชีถูกสร้างด้วยบัญชี Google แล้ว โปรดเข้าสู่ระบบด้วย Google",
-          });
+        return res.status(403).json({
+          error:
+            "บัญชีถูกสร้างด้วยบัญชี Google แล้ว โปรดเข้าสู่ระบบด้วย Google",
+        });
       }
     })
     .catch((err) => {

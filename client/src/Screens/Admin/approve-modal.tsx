@@ -13,13 +13,13 @@ interface Report {
   createdAt: string;
   reportedBy: {
     _id: string;
-    username: string;
+    fullname: string;
   };
   post: {
     _id: string;
     author: {
       _id: string;
-      username: string;
+      fullname: string;
       banner: string;
       profile_picture: string;
     };
@@ -172,14 +172,14 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
                 />
 
                 <p className="m-0" style={{ textTransform: "capitalize" }}>
-                  {report?.post.author.username}
+                  {report?.post.author.fullname}
                   <br />@
                   <Link
-                    to={`/user/${report?.post.author.username}`}
+                    to={`/user/${report?.post.author.fullname}`}
                     className="underline "
                     style={{ color: "inherit" }}
                   >
-                    {report?.post.author.username}
+                    {report?.post.author.fullname}
                   </Link>
                 </p>
               </div>

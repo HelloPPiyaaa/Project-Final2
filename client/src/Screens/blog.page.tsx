@@ -96,9 +96,7 @@ const BlogPage = () => {
       console.log("reportPostId", reportPostId);
       console.log("reportReason", reportReason);
       try {
-        const userId = localStorage.getItem("userId");
-        console.log("userId", userId);
-
+        const userId = sessionStorage.getItem("userId");
         if (!userId) {
           throw new Error("User is not logged in.");
         }

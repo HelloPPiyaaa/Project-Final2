@@ -117,11 +117,6 @@ const addReport = async (
     });
 
     return response;
-    // if (response.status !== 201) {
-    //   throw new Error(
-    //     `Server returned ${response.status} ${response.statusText}`
-    //   );
-    // }
   } catch (error: any) {
     console.error("Error reporting post:", error.message);
     throw error;

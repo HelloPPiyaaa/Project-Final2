@@ -41,13 +41,13 @@ interface Report {
   createdAt: string;
   reportedBy: {
     _id: string;
-    username: string;
+    fullname: string;
   };
   post: {
     _id: string;
     author: {
       _id: string;
-      username: string;
+      fullname: string;
       banner: string;
       profile_picture: string;
     };
@@ -248,6 +248,15 @@ const AdminHome: React.FC = () => {
   const fetchReports = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/report`);
+      setReports(response.data);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    }
+  };
+
+  const fetchBlogs = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/post`);
       setReports(response.data);
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -767,7 +776,7 @@ const AdminHome: React.FC = () => {
                         {reports.length > 0 ? (
                           reports.map((report) => (
                             <tr key={report._id}>
-                              <td>{report.reportedBy.username}</td>
+                              <td>{report.reportedBy.fullname}</td>
                               <td>
                                 {new Date(
                                   report.createdAt
@@ -835,7 +844,7 @@ const AdminHome: React.FC = () => {
                           reports.map((report) =>
                             !report.verified ? (
                               <tr key={report._id}>
-                                <td>{report.reportedBy.username}</td>
+                                <td>{report.reportedBy.fullname}</td>
                                 <td>
                                   {new Date(
                                     report.createdAt
@@ -942,7 +951,7 @@ const AdminHome: React.FC = () => {
                                 report.verified &&
                                 report.status === "Verified" ? (
                                   <tr key={report._id}>
-                                    <td>{report.reportedBy.username}</td>
+                                    <td>{report.reportedBy.fullname}</td>
                                     <td>
                                       {new Date(
                                         report.createdAt
@@ -996,7 +1005,7 @@ const AdminHome: React.FC = () => {
                             reports.map((report) =>
                               report.status === "Decline" ? (
                                 <tr key={report._id}>
-                                  <td>{report.reportedBy.username}</td>
+                                  <td>{report.reportedBy.fullname}</td>
                                   <td>
                                     {new Date(
                                       report.createdAt
