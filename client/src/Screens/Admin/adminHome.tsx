@@ -41,19 +41,37 @@ interface Report {
   createdAt: string;
   reportedBy: {
     _id: string;
-    fullname: string;
+    username: string;
   };
   post: {
     _id: string;
-    user: {
+    author: {
       _id: string;
-      fullname: string;
+      username: string;
+      banner: string;
       profile_picture: string;
     };
+    content: [
+      {
+        time: number;
+        blocks: [
+          {
+            id: string;
+            type: string;
+            data: {
+              text: string;
+            };
+          }
+        ];
+        version: string;
+      }
+    ];
     image: string;
     topic: string;
     detail: string;
-    category: string[];
+    tags: string[];
+    banner: string;
+    publishedAt: string;
     contentWithImages: {
       content: string;
       images?: string[];
@@ -749,7 +767,7 @@ const AdminHome: React.FC = () => {
                         {reports.length > 0 ? (
                           reports.map((report) => (
                             <tr key={report._id}>
-                              <td>{report.reportedBy.fullname}</td>
+                              <td>{report.reportedBy.username}</td>
                               <td>
                                 {new Date(
                                   report.createdAt
@@ -817,7 +835,7 @@ const AdminHome: React.FC = () => {
                           reports.map((report) =>
                             !report.verified ? (
                               <tr key={report._id}>
-                                <td>{report.reportedBy.fullname}</td>
+                                <td>{report.reportedBy.username}</td>
                                 <td>
                                   {new Date(
                                     report.createdAt
@@ -924,7 +942,7 @@ const AdminHome: React.FC = () => {
                                 report.verified &&
                                 report.status === "Verified" ? (
                                   <tr key={report._id}>
-                                    <td>{report.reportedBy.fullname}</td>
+                                    <td>{report.reportedBy.username}</td>
                                     <td>
                                       {new Date(
                                         report.createdAt
@@ -978,7 +996,7 @@ const AdminHome: React.FC = () => {
                             reports.map((report) =>
                               report.status === "Decline" ? (
                                 <tr key={report._id}>
-                                  <td>{report.reportedBy.fullname}</td>
+                                  <td>{report.reportedBy.username}</td>
                                   <td>
                                     {new Date(
                                       report.createdAt

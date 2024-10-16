@@ -2,7 +2,8 @@ import React, { useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
 import axios, { AxiosResponse } from "axios";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { getDay } from "../../common/date";
 
 interface Report {
   _id: string;
@@ -12,19 +13,37 @@ interface Report {
   createdAt: string;
   reportedBy: {
     _id: string;
-    fullname: string;
+    username: string;
   };
   post: {
     _id: string;
-    user: {
+    author: {
       _id: string;
-      fullname: string;
+      username: string;
+      banner: string;
       profile_picture: string;
     };
+    content: [
+      {
+        time: number;
+        blocks: [
+          {
+            id: string;
+            type: string;
+            data: {
+              text: string;
+            };
+          }
+        ];
+        version: string;
+      }
+    ];
     image: string;
     topic: string;
     detail: string;
-    category: string[];
+    tags: string[];
+    banner: string;
+    publishedAt: string;
     contentWithImages: {
       content: string;
       images?: string[];
@@ -69,10 +88,6 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
       throw error;
     }
   };
-
-  useEffect(() => {
-    console.log("report", report);
-  }, [report]);
 
   const deletePostAndVerifyReport = async (
     reportId: string,
@@ -137,95 +152,51 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
         <Modal.Title>Report Details</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {report ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-              paddingInline: "1rem",
-            }}
-          >
-            <p>
-              <span
-                onClick={() => navigate(`/profile/${report.reportedBy._id}`)}
-                style={{
-                  cursor: "pointer",
-                  color: "black",
-                  textDecoration: "none",
-                }}
-              >
-                {report.reportedBy.fullname}
-              </span>{" "}
-              {`ได้รายงานโพสของ`}{" "}
-              <span
-                onClick={() => navigate(`/profile/${report.post.user._id}`)}
-                style={{
-                  cursor: "pointer",
-                  color: "black",
-                  textDecoration: "none",
-                }}
-              >
-                {report.post.user.fullname}
-              </span>{" "}
-              : {report.reason || "No Title"}
-            </p>
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "1rem",
-              }}
-            >
-              <div className="profile-photo">
-                {/* <img src={report.post.user.profile_picture || ""} alt="" /> */}
+        <div className="blogpage">
+          <img
+            src={report?.post.banner}
+            alt="banner"
+            style={{ aspectRatio: "16/9" }}
+          />
+
+          <div className="mt-2">
+            <h2 className="mt-4 fs-3">{report?.post.topic}</h2>
+
+            <div className="detail-user d-flex  justify-content-between my-4">
+              <div className="d-flex gap-2 align-items-start">
+                <img
+                  src={report?.post.author.profile_picture}
+                  alt=""
+                  className="rounded-circle"
+                  style={{ width: "3rem", height: "3rem" }}
+                />
+
+                <p className="m-0" style={{ textTransform: "capitalize" }}>
+                  {report?.post.author.username}
+                  <br />@
+                  <Link
+                    to={`/user/${report?.post.author.username}`}
+                    className="underline "
+                    style={{ color: "inherit" }}
+                  >
+                    {report?.post.author.username}
+                  </Link>
+                </p>
               </div>
-              <span
-                onClick={() => navigate(`/profile/${report.post.user._id}`)}
-                style={{
-                  cursor: "pointer",
-                  color: "black",
-                  textDecoration: "none",
-                }}
-              >
-                {report.post.user.fullname}
-              </span>
-            </span>
-            <img
-              src={report.post.image}
-              alt={report.post.topic}
-              style={{ width: "100%", height: "auto", borderRadius: "0.5rem" }}
-            />
-            <b>{report.post.topic}</b>
-            {/* <div>{report.post.category.map((e) => e)}</div> */}
-            <p>{report.post.detail}</p>
-            {/* {report.post.contentWithImages.map((e: any, idx: number) => {
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                  }}
-                >
-                  <img
-                    src={e.images?.[0] || undefined}
-                    alt={report.post.topic}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      borderRadius: "0.5rem",
-                    }}
-                  />
-                  <p>{e.content}</p>
-                </div>
-              );
-            })} */}
+              <p className="m-0 published-detail">
+                เผยแพร่เมื่อ:{" "}
+                {report?.post.publishedAt
+                  ? getDay(report?.post.publishedAt)
+                  : "ไม่ทราบวันที่"}
+              </p>
+            </div>
+            <p>
+              {report?.post.content.map((e) =>
+                e.blocks.map((s) => <span key={s.id}>{s.data.text}</span>)
+              )}
+            </p>
           </div>
-        ) : (
-          <p>No report selected.</p>
-        )}
+        </div>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="success" onClick={() => handleVerification(true)}>

@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const Report = require("../models/report");
 const Post = require("../models/blog");
@@ -8,46 +9,18 @@ const Like = require("../models/like");
 router.get("/", async (req, res) => {
   try {
     const reports = await Report.find({})
-      .populate({
-        path: "reportedBy",
-        select: "_id fullname profile_picture",
-      })
+      .populate("reportedBy")
       .populate({
         path: "post",
-        select: "topic detail category author",
         populate: {
           path: "author",
-          select: "_id fullname profile_picture",
+          model: "User",
         },
       });
 
-    const formattedReports = reports.map((report) => ({
-      _id: report._id,
-      reason: report.reason,
-      verified: report.verified,
-      status: report.status,
-      createdAt: report.createdAt,
-      reportedBy: {
-        _id: report.reportedBy._id,
-        fullname: report.reportedBy.fullname,
-        profile_picture: report.reportedBy.profile_picture,
-      },
-      post: {
-        _id: report.post._id,
-        user: {
-          _id: report.post.author._id,
-          fullname: report.post.author.fullname,
-          profile_picture: report.post.author.profile_picture,
-        },
-        topic: report.post.topic,
-        detail: report.post.detail,
-        category: report.post.category,
-      },
-    }));
+    // console.log(JSON.stringify(reports, null, 2));
 
-    console.log(JSON.stringify(formattedReports, null, 2));
-
-    res.status(200).json(formattedReports);
+    res.status(200).json(reports);
   } catch (error) {
     console.error("Error fetching reports:", error);
     res.status(500).json({ message: "Internal Server Error" });
