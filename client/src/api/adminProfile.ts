@@ -5,7 +5,7 @@ export const fetchAdminProfile = async (id: string): Promise<any> => {
     throw new Error("Invalid Admin ID");
   }
 
-  const token = localStorage.getItem("adminToken");
+  const token = sessionStorage.getItem("adminToken");
   if (!token) {
     console.error("No token found, redirecting to login...");
     return null;
@@ -50,9 +50,31 @@ export const fetchAdminProfile = async (id: string): Promise<any> => {
   }
 };
 
+export const fetchUser = async () => {
+  const token = sessionStorage.getItem("userId");
+  if (!token) {
+    console.error("No token found, redirecting to login...");
+    return;
+  }
+  const response = await fetch("http://localhost:3001/profile", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch users");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้ทั้งหมดจาก backend
 export const fetchUsersAPI = async () => {
-  const token = localStorage.getItem("userId");
+  const token = sessionStorage.getItem("userId");
   if (!token) {
     console.error("No token found, redirecting to login...");
     return;
@@ -75,7 +97,7 @@ export const fetchUsersAPI = async () => {
 };
 
 export const fetchAllUser = async () => {
-  const token = localStorage.getItem("userId");
+  const token = sessionStorage.getItem("userId");
   if (!token) {
     console.error("No token found, redirecting to login...");
     return;
@@ -97,7 +119,7 @@ export const fetchAllUser = async () => {
 };
 
 export const deleteUserAPI = async (userId: string): Promise<void> => {
-  const adminToken = localStorage.getItem("userId"); // ดึง token จาก localStorage
+  const adminToken = sessionStorage.getItem("userId"); // ดึง token จาก sessionStorage
 
   if (!adminToken) {
     throw new Error("No admin token found. Unauthorized request.");

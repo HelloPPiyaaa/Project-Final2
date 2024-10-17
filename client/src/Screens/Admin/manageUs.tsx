@@ -44,6 +44,7 @@ const ManageUser: React.FC = () => {
           setLastname(profileData.lastname);
         }
         const usersData = await fetchUsersAPI();
+        console.log("usersData", usersData);
         setUsers(usersData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -54,7 +55,6 @@ const ManageUser: React.FC = () => {
   }, [id]);
 
   const handleEditUser = (userId: string) => {
-    // Implement the edit user functionality here
     console.log("Edit user with ID:", userId);
   };
 

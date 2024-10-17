@@ -1,45 +1,151 @@
-import React from "react";
-import { PiUsersThreeFill } from "react-icons/pi";
-import { LuView } from "react-icons/lu";
-import { fetchAdminProfile } from "../../api/adminProfile";
-import { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { MdCategory } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
+import { Modal, Button } from "react-bootstrap";
+import { fetchAllUser } from "../../api/adminProfile";
 
-const ManageCate: React.FC = () => {
+interface Blog {
+  _id: string;
+  blog_id: string;
+  topic: string;
+  banner: string;
+  des: string;
+  content: Array<{
+    time: number;
+    blocks: Array<{
+      id: string;
+      type: string;
+      data: {
+        text: string;
+      };
+    }>;
+    version: string;
+  }>;
+  tags: string[];
+  author: string;
+  comments: any[];
+  draft: boolean;
+  likes: any[];
+  saves: any[];
+  views: number;
+  publishedAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+const ManageCate: React.FC<{ blogsData: Blog[] }> = ({ blogsData }) => {
   const { id } = useParams<{ id: string }>();
-  const [adminProfile, setAdminProfile] = useState<any>(null);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [tel, setTel] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
-
-  const genderData = {
-    male: 30,
-    female: 20,
-  };
+  const [uniqueTags, setUniqueTags] = useState<any>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<{
+    blog_id: string;
+    tags: string;
+    banner: string;
+  } | null>(null);
+  const [newTag, setNewTag] = useState("");
+  const [getBlog, setGetBlog] = useState<Blog[]>();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (id) {
-          const profileData = await fetchAdminProfile(id);
-          setUsername(profileData.username);
-          setAdminProfile(profileData);
-          setEmail(profileData.email);
-          setTel(profileData.tel);
-          setFirstname(profileData.firstname);
-          setLastname(profileData.lastname);
-        }
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-      }
-    };
+    const formattedTags: Array<{
+      blog_id: string;
+      tags: string;
+      banner: string;
+    }> = [];
 
-    fetchData();
-  }, [id]);
+    (getBlog || blogsData).forEach((blog) => {
+      const { blog_id, tags, banner } = blog;
+
+      tags.forEach((tag) => {
+        formattedTags.push({ blog_id, tags: tag, banner });
+      });
+    });
+
+    setUniqueTags(formattedTags);
+  }, [blogsData, getBlog]);
+
+  const memoizedTags = useMemo(() => uniqueTags, [uniqueTags]);
+
+  const handleEditTag = async () => {
+    if (selectedTag) {
+      try {
+        const response = await fetch(
+          "http://localhost:3001/create-blog/edit-tag",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              blog_id: selectedTag.blog_id,
+              old_tag: selectedTag.tags,
+              new_tag: newTag,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to edit tag");
+        }
+
+        setShowEditModal(false);
+        const dataFetch = async () => {
+          try {
+            const AllPost = await fetchAllUser();
+
+            setGetBlog(AllPost);
+          } catch (error) {
+            console.error("Error fetching user count:", error);
+          }
+        };
+        dataFetch();
+      } catch (error) {
+        console.error("Error editing tag:", error);
+      }
+    }
+  };
+
+  const handleDeleteTag = async () => {
+    if (selectedTag) {
+      try {
+        const response = await fetch(
+          "http://localhost:3001/create-blog/deletetag",
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              blog_id: selectedTag.blog_id,
+              tag: selectedTag.tags,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to delete tag");
+        }
+
+        const updatedBlog = await response.json();
+
+        setShowDeleteModal(false);
+        const dataFetch = async () => {
+          try {
+            const AllPost = await fetchAllUser();
+
+            setGetBlog(AllPost);
+          } catch (error) {
+            console.error("Error fetching user count:", error);
+          }
+        };
+        dataFetch();
+      } catch (error: any) {
+        console.error("Error deleting tag:", error.message);
+      }
+    }
+  };
 
   return (
     <div className="manageUser">
@@ -61,7 +167,7 @@ const ManageCate: React.FC = () => {
             <div className="middle">
               <div className="left">
                 <h3>หมวดหมู่ทั้งหมด</h3>
-                <h1>8</h1>
+                <h1>{memoizedTags.length}</h1>
               </div>
             </div>
             <small className="text-muted1">Last 24 Hour</small>
@@ -79,210 +185,90 @@ const ManageCate: React.FC = () => {
                 maxHeight: "300px",
               }}
             >
-              <div className="item ">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/21/16/94/2116949d8173512c55db395903781fd7.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>food</h3>
-                    <small className="text-muted1">อาหาร</small>
+              {memoizedTags.map(({ blog_id, tags, banner }: any) => (
+                <div className="item" key={`${blog_id}-${tags}`}>
+                  <div className="profile-photo">
+                    <img src={banner} alt="" />
                   </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
+                  <div className="right">
+                    <div className="info">
+                      <h3>{tags}</h3>
+                      <small className="text-muted1">อาหาร</small>
                     </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="item ">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/cf/84/b9/cf84b94a757bbb9124cd4646d8069433.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>cafe</h3>
-                    <small className="text-muted1">คาเฟ่</small>
-                  </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
-                    </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
+                    <div className="manage d-flex">
+                      <div
+                        className="edit warning"
+                        style={{ paddingRight: "10px" }}
+                        onClick={() => {
+                          setSelectedTag({ blog_id, tags, banner });
+                          setNewTag(tags);
+                          setShowEditModal(true);
+                        }}
+                      >
+                        <h3>Edit</h3>
+                      </div>
+                      <div
+                        className="delete danger"
+                        onClick={() => {
+                          setSelectedTag({ blog_id, tags, banner });
+                          setShowDeleteModal(true);
+                        }}
+                      >
+                        <h3>Delete</h3>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="item">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/ab/d9/3d/abd93dc5a998f8f6ecd7148df7fa6a36.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>lifestyle</h3>
-                    <small className="text-muted1">การใช้ชีวิต</small>
-                  </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
-                    </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="item">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/48/33/76/483376371b3e03301a5d9a6c15013342.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>travel</h3>
-                    <small className="text-muted1">ท่องเที่ยว</small>
-                  </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
-                    </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="item">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/9f/68/55/9f685516e86bd4fe54a30d181bcdc6e1.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>fashion</h3>
-                    <small className="text-muted1">การแต่งตัว</small>
-                  </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
-                    </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="item">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/9f/68/55/9f685516e86bd4fe54a30d181bcdc6e1.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>beauty</h3>
-                    <small className="text-muted1">การแต่งหน้า</small>
-                  </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
-                    </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="item">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/9f/68/55/9f685516e86bd4fe54a30d181bcdc6e1.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>news</h3>
-                    <small className="text-muted1">ข่าวสาร</small>
-                  </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
-                    </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="item">
-                <div className="profile-photo">
-                  <img
-                    src="https://i.pinimg.com/564x/9f/68/55/9f685516e86bd4fe54a30d181bcdc6e1.jpg"
-                    alt=""
-                  />
-                </div>
-                <div className="right">
-                  <div className="info">
-                    <h3>other</h3>
-                    <small className="text-muted1">อื่นๆ</small>
-                  </div>
-                  <div className="manage d-flex ">
-                    <div
-                      className="edit warning"
-                      style={{ paddingRight: "10px" }}
-                    >
-                      <h3>Edit</h3>
-                    </div>
-                    <div className="delete danger">
-                      <h3>Delete</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
+
+        {/* Edit Modal */}
+        <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Edit Tag</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <input
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              placeholder="Enter new tag"
+              className="form-control"
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleEditTag}>
+              Save
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Delete Modal */}
+        <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Deletion</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to delete this tag:{" "}
+            <strong>{selectedTag?.tags}</strong>?
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDeleteTag}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </div>
   );

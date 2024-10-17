@@ -1,5 +1,5 @@
 import "../../misc/adminHome.css";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import logostart from "../../pic/logo-headV2.png";
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -11,6 +11,7 @@ import { FiLogOut } from "react-icons/fi";
 import {
   fetchAdminProfile,
   fetchAllUser,
+  fetchUser,
   fetchUsersAPI,
 } from "../../api/adminProfile";
 import { LuView } from "react-icons/lu";
@@ -90,6 +91,8 @@ const AdminHome: React.FC = () => {
   const [postCounter, setPostCounter] = useState<number>(0);
   const [totalViews, setTotalViews] = useState<number>(0);
   const [postMonthly, setPostMonthly] = useState<any>();
+  const [getUser, setGetUser] = useState<any>();
+  const [getBlog, setGetBlog] = useState<any>();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -128,10 +131,6 @@ const AdminHome: React.FC = () => {
 
     fetchReports();
   }, []);
-
-  useEffect(() => {
-    console.log("Fetched Reports:", reports);
-  }, [reports]);
 
   const convertPostsToGrowthData = (posts: any[]) => {
     const monthNames = [
@@ -227,17 +226,22 @@ const AdminHome: React.FC = () => {
     const fetchData = async () => {
       try {
         const userCountData = await fetchUsersAPI();
-        const AllUser = await fetchAllUser();
+        const AllPost = await fetchAllUser();
+        const User = await fetchUser();
 
-        const totalViews = AllUser.reduce(
-          (acc: any, post: any) => acc + post.views,
+        setGetUser(User);
+
+        const totalViews = AllPost.reduce(
+          (acc: any, post: any) => acc + post.activity.total_reads,
           0
         );
 
+        setGetBlog(AllPost);
+
         setUserCounter(userCountData);
-        setPostCounter(AllUser.length);
+        setPostCounter(AllPost.length);
         setTotalViews(totalViews);
-        setPostMonthly(convertPostsToGrowthData(AllUser));
+        setPostMonthly(convertPostsToGrowthData(AllPost));
       } catch (error) {
         console.error("Error fetching user count:", error);
       }
@@ -298,13 +302,55 @@ const AdminHome: React.FC = () => {
   const [isUserHovered, setIsUserHovered] = useState(false);
   const [isViewHovered, setIsViewHovered] = useState(false);
 
+  const monthsUser = [
+    { month: "January", joinAt: 0 },
+    { month: "February", joinAt: 0 },
+    { month: "March", joinAt: 0 },
+    { month: "April", joinAt: 0 },
+    { month: "May", joinAt: 0 },
+    { month: "June", joinAt: 0 },
+    { month: "July", joinAt: 0 },
+    { month: "August", joinAt: 0 },
+    { month: "September", joinAt: 0 },
+    { month: "October", joinAt: 0 },
+    { month: "November", joinAt: 0 },
+    { month: "December", joinAt: 0 },
+  ];
+
+  const monthsPost = [
+    { month: "January", publishedAt: 0 },
+    { month: "February", publishedAt: 0 },
+    { month: "March", publishedAt: 0 },
+    { month: "April", publishedAt: 0 },
+    { month: "May", publishedAt: 0 },
+    { month: "June", publishedAt: 0 },
+    { month: "July", publishedAt: 0 },
+    { month: "August", publishedAt: 0 },
+    { month: "September", publishedAt: 0 },
+    { month: "October", publishedAt: 0 },
+    { month: "November", publishedAt: 0 },
+    { month: "December", publishedAt: 0 },
+  ];
+
+  getUser?.forEach((user: any) => {
+    const date = new Date(user.joinedAt);
+    const monthIndex = date.getUTCMonth();
+    monthsUser[monthIndex].joinAt += 1;
+  });
+
+  getBlog?.forEach((blog: any) => {
+    const publishedDate = new Date(blog.publishedAt);
+    const monthIndex = publishedDate.getMonth();
+    monthsPost[monthIndex].publishedAt += 1;
+  });
+
   // ข้อมูลตัวอย่างสำหรับกราฟ
   const userData = {
-    labels: ["june", "july", "august", "sept", "oct", "nov"],
+    labels: monthsUser.map((e) => e.month),
     datasets: [
       {
         label: "จำนวนผู้ใช้",
-        data: [0, 0, 0, 0, 3, 0], // ข้อมูลกราฟ
+        data: monthsUser.map((e) => e.joinAt), // ข้อมูลกราฟ
         borderColor: "rgba(75, 192, 192, 1)",
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         fill: true,
@@ -313,11 +359,11 @@ const AdminHome: React.FC = () => {
   };
   // ข้อมูลตัวอย่างสำหรับกราฟของการเยี่ยมชม
   const viewData = {
-    labels: ["june", "july", "august", "sept", "oct", "nov"],
+    labels: monthsPost.map((e) => e.month),
     datasets: [
       {
         label: "จำนวนการเยี่ยมชม",
-        data: [0, 0, 0, 0, 19, 0], // ข้อมูลกราฟการเยี่ยมชม
+        data: monthsPost.map((e) => e.publishedAt), // ข้อมูลกราฟการเยี่ยมชม
         borderColor: "rgba(153, 102, 255, 1)",
         backgroundColor: "rgba(153, 102, 255, 0.2)",
         fill: true,
@@ -402,10 +448,10 @@ const AdminHome: React.FC = () => {
               <MdCategory />
               <h3>จัดการหมวดหมู่</h3>
             </a>
-            <a href="#">
+            <Link to={`/admin/login`}>
               <FiLogOut />
               <h3>ออกจากระบบ</h3>
-            </a>
+            </Link>
           </div>
         </aside>
 
@@ -504,7 +550,7 @@ const AdminHome: React.FC = () => {
             </div>
 
             <div className="recent-order">
-              <GrowthChart data={postMonthly} />
+              <GrowthChart data={monthsPost} />
             </div>
           </div>
         )}
@@ -1380,7 +1426,7 @@ const AdminHome: React.FC = () => {
           </div>
         )}
 
-        {selectedCate === "manage-cate" && <ManageCate />}
+        {selectedCate === "manage-cate" && <ManageCate blogsData={getBlog} />}
         {selectedCate === "manage-cate" && (
           <div className="right">
             <div className="top">

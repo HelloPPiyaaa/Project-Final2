@@ -101,8 +101,7 @@ router.get("/users", async (req, res) => {
 
     // for fetch all
     const userCount = await User.countDocuments();
-
-    res.json(userCount);
+    return res.json(userCount);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -112,21 +111,13 @@ router.get("/users", async (req, res) => {
 router.get("/viewer", async (req, res) => {
   try {
     const now = new Date();
-
-    // for fetch data last 24 Hour
-    // const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    // const posts = await Post.find({ createdAt: { $gte: last24Hours } });
-
-    // for fetch all
     const posts = await Post.find();
-
     res.json(posts);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 });
-// waiting for add isAdmin function //
 
 // 2. รับข้อมูลผู้ใช้ตาม ID (แอดมิน)
 router.get("/users/:id", isAdmin, async (req, res) => {
@@ -192,22 +183,5 @@ router.get("/:id", async function (req, res) {
     res.status(500).json({ error: "Error fetching user data" });
   }
 });
-
-// router.post("/login", async (req, res) => {
-//   const { email, password } = req.body;
-
-//   try {
-//     const admin = await Admin.findOne({ email, password });
-
-//     if (admin) {
-//       res.json({ success: true, id: admin._id, message: "Login successful!" });
-//     } else {
-//       res.json({ success: false, message: "Invalid email or password." });
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ success: false, message: "Internal server error." });
-//   }
-// });
 
 module.exports = router;

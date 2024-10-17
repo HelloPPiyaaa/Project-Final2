@@ -3,7 +3,7 @@ import Chart from "chart.js/auto";
 
 interface GrowthChartData {
   month: string;
-  numberOfPosts: number;
+  publishedAt: number;
 }
 
 interface GrowthChartProps {
@@ -29,7 +29,7 @@ const GrowthChart: React.FC<GrowthChartProps> = ({ data }) => {
             datasets: [
               {
                 label: "ยอดการโพสต์ทั้งหมด",
-                data: data?.map((item) => item.numberOfPosts),
+                data: data?.map((item) => item.publishedAt),
                 borderColor: "rgba(75, 192, 192, 1)",
                 borderWidth: 2,
               },

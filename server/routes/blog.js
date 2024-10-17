@@ -7,7 +7,6 @@ const User = require("../models/user");
 const Blog = require("../models/blog");
 const Notifications = require("../models/notifaications");
 const Comment = require("../models/comments");
-const notifaications = require("../models/notifaications");
 
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -318,6 +317,56 @@ router.post("/get-replies", (req, res) => {
     .catch((err) => {
       return res.status(500).json({ error: err.message });
     });
+});
+
+// Edit Tag API
+router.post("/edit-tag", async (req, res) => {
+  const { blog_id, old_tag, new_tag } = req.body;
+
+  try {
+    const blog = await Blog.findOne({ blog_id }).populate(
+      "author",
+      "fullname username profile_picture"
+    );
+
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found" });
+    }
+
+    const updatedTags = blog.tags.map((tag) =>
+      tag === old_tag ? new_tag : tag
+    );
+
+    blog.tags = updatedTags;
+    await blog.save();
+
+    return res.status(200).json({ blog });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Tag API
+router.delete("/deletetag", async (req, res) => {
+  const { blog_id, tag } = req.body;
+
+  try {
+    const blog = await Blog.findOneAndUpdate(
+      { blog_id },
+      { $pull: { tags: tag } },
+      { new: true }
+    )
+      .populate("author", "fullname username profile_picture")
+      .select("topic des content banner activity publishedAt blog_id tags");
+
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found" });
+    }
+
+    return res.status(200).json({ blog });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
