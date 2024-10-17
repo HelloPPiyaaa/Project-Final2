@@ -7,25 +7,48 @@ const Post = require("../models/blog");
 const jwt = require("jsonwebtoken");
 
 //Admin
-router.get("/", async (req, res) => {
-  try {
-    const admins = await Admin.find({}).lean();
-    res.json(admins);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error fetching user data" });
-  }
-});
-
-// router.get("/users", async (req, res) => {
+// router.get("/", async (req, res) => {
 //   try {
-//     const users = await User.find();
-//     res.status(200).json(users);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error });
+//     const admins = await Admin.find({}).lean();
+//     res.json(admins);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Error fetching user data" });
 //   }
 // });
+
+const formDatatoSend = (user) => {
+  const access_token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  return {
+    access_token,
+    _id: user._id,
+    role: user.is_admin == true ? "admin" : "user",
+    profile_picture: user.profile_picture,
+    username: user.username,
+    fullname: user.fullname,
+  };
+};
+
+router.post("/", async (req, res) => {
+  let { email, password } = req.body;
+
+  console.log("Email:", email);
+  console.log("Password:", password);
+
+  Admin.findOne({ email: email })
+    .then((user) => {
+      if (!user) {
+        return res.status(403).json({ error: "ไม่พบผู้ใช้" });
+      }
+
+      console.log("formDatatoSend(user)", formDatatoSend(user));
+      return res.status(200).json(formDatatoSend(user));
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
+    });
+});
 
 // Middleware ตรวจสอบสิทธิ์ของแอดมิน
 const isAdmin = async (req, res, next) => {
@@ -159,7 +182,7 @@ router.delete("/users/:id", isAdmin, async (req, res) => {
 
 router.get("/:id", async function (req, res) {
   try {
-    const admin = await Admin.findById(req.params.id).lean();
+    const admin = await Admin.findById(req.params.id);
     if (!admin) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -186,36 +209,5 @@ router.get("/:id", async function (req, res) {
 //     res.status(500).json({ success: false, message: "Internal server error." });
 //   }
 // });
-
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const admin = await Admin.findOne({ email, password });
-
-    if (admin) {
-      // สร้าง token
-      const adminToken = jwt.sign(
-        { id: admin._id, email: admin.email },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "1d",
-        }
-      );
-
-      res.json({
-        success: true,
-        id: admin._id,
-        token: adminToken,
-        message: "Login successful!",
-      });
-    } else {
-      res.json({ success: false, message: "Invalid email or password." });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
 
 module.exports = router;

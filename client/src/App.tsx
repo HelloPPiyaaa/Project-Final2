@@ -121,14 +121,14 @@ function App() {
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin/register" element={<RegisterAdmin />} />
-          <Route path="/admin/login" element={<LoginAdmin type="เข้าสู่ระบบแอดมิน"  />} />
-          <Route path="/admin" element={<AdminHome />} />
+          <Route path="/admin/login" element={<LoginAdmin type="admin" />} />
+          <Route path="/admin/:adminId" element={<AdminHome />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/reset_password/:type/:id/:token"
             element={<ResetPassword />}
           />
-             {/* <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* <Route path="/forgot-password" element={<ForgotPassword />} />
              <Route path="/verify-otp" element={<VerifyOTP />} />
              <Route path="/reset-password" element={<ResetPassword />} /> */}
           <Route path="/chats" element={<Chat />} />

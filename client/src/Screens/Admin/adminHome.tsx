@@ -84,6 +84,7 @@ const AdminHome: React.FC = () => {
   const API_BASE_URL = "http://localhost:3001";
 
   const [adminProfile, setAdminProfile] = useState<any>(true);
+  const adminUsername = sessionStorage.getItem("userId");
 
   const [userCounter, setUserCounter] = useState<number>(0);
   const [postCounter, setPostCounter] = useState<number>(0);
@@ -529,9 +530,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -1063,9 +1064,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -1179,9 +1180,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -1284,9 +1285,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -1401,9 +1402,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />

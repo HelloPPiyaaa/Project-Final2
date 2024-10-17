@@ -1,56 +1,80 @@
 const express = require("express");
 const User = require("../models/user");
+const Admin = require("../models/admin"); // เพิ่มการใช้ Admin model
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const router = express.Router();
 
-router.post("/:id/:token", async (req, res) => {
-  const { id, token } = req.params;
+const formDatatoSend = (user) => {
+  const access_token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  return {
+    access_token,
+    _id: user._id,
+    profile_picture: user.profile_picture,
+    username: user.username,
+    fullname: user.fullname,
+  };
+};
+
+router.post("/", (req, res) => {
+  let { email, password } = req.body;
+
+  console.log("Email:", email);
+  console.log("Password:", password);
+
+  Admin.findOne({ email: email })
+    .then((user) => {
+      if (!user) {
+        return res.status(403).json({ error: "ไม่พบผู้ใช้" });
+      }
+      if (!user.google_auth) {
+        bcrypt.compare(password, user.password, (err, result) => {
+          if (err) {
+            return res
+              .status(403)
+              .json({ error: "เกิดข้อผิดพลาดขณะเข้าสู่ระบบ โปรดลองอีกครั้ง" });
+          }
+
+          if (!result) {
+            return res.status(403).json({ error: "รหัสผ่านไม่ถูกต้อง" });
+          } else {
+            console.log("formDatatoSend(user)", formDatatoSend(user));
+            return res.status(200).json(formDatatoSend(user));
+          }
+        });
+      } else {
+        return res.status(403).json({
+          error:
+            "บัญชีถูกสร้างด้วยบัญชี Google แล้ว โปรดเข้าสู่ระบบด้วย Google",
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+router.post("/:type/:id/:token", async (req, res) => {
+  const { id, token, type } = req.params;
   const { password } = req.body;
-
-  // ตรวจสอบค่าที่รับมาจาก URL และ body
-  console.log("ID from URL:", id);
-  console.log("Token from URL:", token);
-  console.log("Password from body:", password);
-
-  try {
-    console.log("Received token:", token);
-
-    // ตรวจสอบ token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      console.error("Invalid token:", err.message);
-      return res
-        .status(400)
-        .json({ Status: "Error", Message: "Invalid token" });
+  jwt.verify(token, "jwt_secret_key", (err, decoded) => {
+    if (err) {
+      return res.json({ Status: "Error with token" });
+    } else {
+      bcrypt
+        .hash(password, 10)
+        .then((hash) => {
+          // ตรวจสอบว่าประเภทเป็น user หรือ admin แล้วอัปเดตรหัสผ่าน
+          const model = type === "admin" ? Admin : User; // เลือก model ที่เหมาะสม
+          model
+            .findByIdAndUpdate({ _id: id }, { password: hash })
+            .then((u) => res.send({ Status: "Success" }))
+            .catch((err) => res.send({ Status: err.message }));
+        })
+        .catch((err) => res.send({ Status: err.message }));
     }
-    console.log("Decoded token:", decoded);
-
-    // ค้นหาผู้ใช้ตาม ID
-    const user = await User.findById(id);
-    if (!user) {
-      console.log("User not found for ID:", id);
-      return res
-        .status(404)
-        .json({ Status: "Error", Message: "User not found" });
-    }
-
-    // แฮชรหัสผ่านและอัปเดตผู้ใช้
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
-    await user.save();
-
-    res
-      .status(200)
-      .json({ Status: "Success", Message: "Password updated successfully" });
-  } catch (error) {
-    console.error("Error:", error.message);
-    res
-      .status(400)
-      .json({ Status: "Error", Message: "Invalid token or user ID" });
-  }
+  });
 });
 
 module.exports = router;

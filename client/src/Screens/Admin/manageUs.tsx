@@ -43,7 +43,6 @@ const ManageUser: React.FC = () => {
           setFirstname(profileData.firstname);
           setLastname(profileData.lastname);
         }
-
         const usersData = await fetchUsersAPI();
         setUsers(usersData);
       } catch (error) {
@@ -122,7 +121,7 @@ const ManageUser: React.FC = () => {
                 maxHeight: "300px",
               }}
             >
-              {users.map((user) => (
+              {/* {users.map((user) => (
                 <div className="item" key={user._id}>
                   <div className="profile-photo">
                     <img src={user.profile_picture} alt={user.username} />
@@ -149,7 +148,7 @@ const ManageUser: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))} */}
             </div>
           </div>
         </div>
