@@ -13,6 +13,7 @@ import Profile from "./Screens/profile";
 import EditProfile from "./Screens/edit-profile";
 import RegisterAdmin from "./Screens/Admin/adminRegister";
 import Writepost from "./Screens/post";
+import AccountPreferences from "./Screens/AccountPreferences";
 // import Content from "./Screens/Content";
 import AdminHome from "./Screens/Admin/adminHome";
 
@@ -102,8 +103,8 @@ function App() {
             <Route path="*" element={<PageNotFound />} />
             <Route path="/user/:id" element={<ProfilePage />} />
             <Route path="/blog/:blog_id" element={<BlogPage />}></Route>
-
             <Route path="/test" element={<TestPage />} />
+            <Route path="/AccountPreferences" element={<AccountPreferences />} />
             <Route path="/profile/:id" element={<Profile />} />
             <Route path="/profile/edit-profile/:id" element={<EditProfile />} />
             <Route path="/posts" element={<Post />} />
