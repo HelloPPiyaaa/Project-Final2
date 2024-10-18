@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const bcrypt = require("bcrypt");
 
 // Route URL to get all users
 router.get("/", async (req, res) => {
@@ -45,13 +46,43 @@ router.post("/edit-profile/update/:id", async (req, res) => {
   }
 });
 
+// Add this route in your existing user routes file
+router.post("/edit-profile/notifications/:id", async (req, res) => {
+  const userId = req.params.id;
+  const { show_notifications } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { show_notifications },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating notification setting:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
 // Route URL to delete user profile by ID
 router.delete("/edit-profile/delete/:id", async function (req, res, next) {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    const isMatch = await bcrypt.compare(req.body.password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Incorrect password" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
     res.json({ message: "User deleted successfully" });
   } catch (err) {
     console.error(err);
@@ -59,20 +90,37 @@ router.delete("/edit-profile/delete/:id", async function (req, res, next) {
   }
 });
 
-router.post("/changepassword", async (req, res) => {
+router.post("/changepassword/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.body._id);
+    const userId = req.params.id;
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(userId);
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    user.password = req.body.password;
-    user.save();
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Old password is incorrect" });
+    }
 
-    res.json({ message: "User deleted successfully" });
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res
+        .status(400)
+        .json({ error: "New password cannot be the same as the old password" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ success: true, message: "Password updated successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error deleting user" });
+    console.error("Error updating password:", err);
+    res.status(500).json({ error: "Error updating password" });
   }
 });
 

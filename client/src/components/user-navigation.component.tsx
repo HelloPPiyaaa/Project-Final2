@@ -11,10 +11,13 @@ const UserNavigationPanel = () => {
     userAuth: { username },
     setUserAuth,
   } = useContext(UserContext);
+  const userId = sessionStorage.getItem("userId");
+
   const signOutUser = () => {
     removeFromSession("user");
     setUserAuth({ access_token: null });
   };
+
   return (
     <AnimationWrapper className="animationwrap" transition={{ duration: 0.2 }}>
       <div className="list-dropdown">
@@ -33,6 +36,9 @@ const UserNavigationPanel = () => {
 
         <Link to={`/settings/edit-profile`} className="link pl-8">
           ตั้งค่า
+        </Link>
+        <Link to={`/account/preference/${userId}`} className="link pl-8">
+          Account Preference
         </Link>
         <Link to={`/settings/edit-profile`} className="link pl-8">
           ช่วยเหลือ

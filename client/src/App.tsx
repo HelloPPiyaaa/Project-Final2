@@ -41,6 +41,7 @@ import ProfilePage from "./Screens/ProfilePage";
 import BlogPage from "./Screens/blog.page";
 import DashboardUser from "./Screens/DashboardUser";
 import LoginAdmin from "./Screens/Admin/adminLogin";
+import AccountPreferences from "./Screens/AccountPreferences";
 // import ForgotPassword from './Screens/Admin/ForgotPassword';
 // import VerifyOTP from "./Screens/Admin/VerifyOTP";
 // import ResetPassword from './Screens/Admin/ResetPassword';
@@ -127,6 +128,10 @@ function App() {
           <Route
             path="/reset_password/:type/:id/:token"
             element={<ResetPassword />}
+          />
+          <Route
+            path="/account/preference/:id"
+            element={<AccountPreferences />}
           />
           {/* <Route path="/forgot-password" element={<ForgotPassword />} />
              <Route path="/verify-otp" element={<VerifyOTP />} />

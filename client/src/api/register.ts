@@ -26,6 +26,7 @@ const registerUser = async (user: any): Promise<any> => {
     }
 
     const responseData = await response.json();
+    console.log("responseData", responseData);
     return responseData;
   } catch (error: any) {
     console.error("Error:", (error as Error).message);

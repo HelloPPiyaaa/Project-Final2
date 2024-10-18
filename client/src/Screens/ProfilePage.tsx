@@ -9,11 +9,9 @@ import { UserContext } from "../App";
 import AboutUser from "../components/about.component";
 import { Post } from "../types/post";
 import { filterPaginationData } from "../components/filter-pagination";
-import InpageNavigation from "../components/Inpage-navigation";
 import BlogCard from "../components/blogpost.component";
 import NoDataMessage from "../components/nodata.component";
 import LoadMoreDataBtn from "../components/load-more.component";
-import MinimalBlogPost from "./nobanner-blog";
 import InPageNavigation from "../components/Inpage-navigation";
 import PageNotFound from "./404";
 
@@ -65,7 +63,7 @@ const ProfilePage = () => {
       })
       .then(({ data: user }) => {
         if (user !== null) {
-          console.log("User data: ", user); 
+          console.log("User data: ", user);
           setProfile(user);
         }
         if (profileId) {
