@@ -6,7 +6,7 @@ export const fetchProfile = async (me: string | null): Promise<any> => {
     throw new Error("Invalid user ID");
   }
 
-  const url = `${API_BASE_URL}/follows/${me}`;
+  const url = `${API_BASE_URL}/follow/${me}`;
 
   try {
     const response = await fetch(url, {
@@ -53,7 +53,7 @@ export const fetchFollow = async (me: string | null): Promise<any> => {
   if (!me) {
     throw new Error("Invalid user ID");
   }
-  const url = `${API_BASE_URL}/follows/users/${me}`;
+  const url = `${API_BASE_URL}/follow/users/${me}`;
   console.log("Request URL:", url);
 
   try {

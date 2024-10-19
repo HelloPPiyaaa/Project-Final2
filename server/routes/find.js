@@ -51,7 +51,6 @@ router.get("/find/:userId", async (req, res) => {
 
 router.post("/get-profile", (req, res) => {
   let { id } = req.body;
-  console.log("get-profile", req.body);
 
   User.findOne({ _id: id })
     .select("-password -google_auth -updatedAt -blogs")

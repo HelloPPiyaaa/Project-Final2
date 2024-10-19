@@ -83,7 +83,7 @@ app.use("/chats", chatRouter);
 app.use("/messages", messageRouter);
 app.use("/users", find);
 app.use("/reset_password", resetPasswordRouter);
-app.use("/follows", FollowUser);
+app.use("/follow", FollowUser);
 app.use("/admin", AdminProfile);
 app.use("/admin/register", AdminRegister);
 app.use("/api/questions", questionRouter);

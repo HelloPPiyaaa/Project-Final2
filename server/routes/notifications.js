@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const Notification = require("../models/notification");
+const Notification = require("../models/notifaications");
+const Report = require("../models/report");
+const Post = require("../models/blog");
+const Comment = require("../models/comment");
+const Like = require("../models/like");
 
 router.get("/", async (req, res) => {
   const { userId } = req.query;
@@ -9,11 +13,16 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ message: "User ID is required" });
   }
 
+  console.log("userId", userId);
+
   try {
-    // Filter notifications by notification_for field
-    const userNotifications = await Notification.find()
+    const userNotifications = await Notification.find({
+      notification_for: userId,
+    })
       .populate("user")
-      .populate("notification_for");
+      .populate("blog")
+      .populate("notification_for")
+      .exec();
 
     if (!userNotifications.length) {
       return res
@@ -23,6 +32,7 @@ router.get("/", async (req, res) => {
 
     res.json(userNotifications);
   } catch (error) {
+    console.error("Error fetching notifications:", error); // Log the error
     res
       .status(500)
       .json({ message: "Error fetching notifications: " + error.message });
@@ -61,7 +71,7 @@ router.patch("/:id/mark-as-read", async (req, res) => {
   try {
     const notification = await Notification.findByIdAndUpdate(
       id,
-      { isRead: true },
+      { seen: true },
       { new: true }
     );
 

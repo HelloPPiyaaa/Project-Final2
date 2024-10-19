@@ -1,12 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
-import { LuFileEdit } from "react-icons/lu";
 import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../App";
-import { removeFromSession } from "../common/session";
-import "../misc/dropdown-nav.css";
-import AnimationWrapper from "../Screens/page-animation";
 import axios from "axios";
-import { FaUser } from "react-icons/fa";
+import "../misc/dropdown-nav.css"; // Assuming this file includes custom styles.
 
 const UserNotificationPanel = () => {
   const {
@@ -19,14 +15,19 @@ const UserNotificationPanel = () => {
   const navigate = useNavigate();
   const API_BASE_URL = "http://localhost:3001";
 
+  // Fetch notifications on component mount and every 5 seconds.
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/notifications?userId=${userId}`
         );
-        setNotifications(response.data);
-        console.log("response.data", response.data);
+
+        if (response.status === 200) {
+          setNotifications(response.data);
+        } else {
+          console.error("Failed to fetch notifications:", response.data);
+        }
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -37,91 +38,111 @@ const UserNotificationPanel = () => {
     return () => clearInterval(intervalId);
   }, [userId]);
 
+  // Handle the notification click (mark as read and navigate).
   const handleNotificationClick = async (
-    e: React.MouseEvent<HTMLAnchorElement>,
+    e: React.MouseEvent<HTMLDivElement>,
     type: string,
     notificationId: string,
-    entityId: string
+    entityId: string,
+    userId: string
   ) => {
     e.preventDefault();
+
     try {
-      await axios.patch(
-        `http://localhost:3001/notifications/${notificationId}/mark-as-read`
+      const response = await axios.patch(
+        `${API_BASE_URL}/notifications/${notificationId}/mark-as-read`
       );
-      setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) =>
-          notification._id === notificationId
-            ? { ...notification, isRead: true }
-            : notification
-        )
-      );
-      navigate(
-        type === "follow" ? `/profile/${entityId}` : `/content/${entityId}`
-      );
+
+      if (response.status === 200) {
+        setNotifications((prevNotifications) =>
+          prevNotifications.map((notification) =>
+            notification._id === notificationId
+              ? { ...notification, seen: true }
+              : notification
+          )
+        );
+        // Navigate to the relevant page based on notification type.
+        navigate(type === "follow" ? `/user/${userId}` : `/blog/${entityId}`);
+      } else {
+        console.error("Failed to mark notification as read:", response.data);
+      }
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
   };
 
   return (
-    <AnimationWrapper className="animationwrap" transition={{ duration: 0.2 }}>
-      {notifications.map((notification) => {
-        return (
-          <div className="list-dropdown">
-            <div
-              className="d-flex"
-              style={
-                notification.isRead
-                  ? { backgroundColor: "transparent" }
-                  : {
-                      backgroundColor: "rgba(183, 183, 183, .5)",
-                      borderRadius: "10px",
-                      padding: "5px",
-                    }
-              }
-            >
-              <FaUser style={{ fontSize: "20px", marginRight: "15px" }} />
-              <p
-                className="m-0"
-                onClick={(e: any) =>
-                  handleNotificationClick(
-                    e,
-                    notification.type,
-                    notification._id,
-                    notification.entity
-                  )
-                }
-              >
-                {notification.message}
+    <div
+      style={{
+        padding: "1rem",
+        position: "absolute",
+        width: "25rem",
+        right: "0",
+        backgroundColor: "#f9f9f9",
+        borderRadius: "10px",
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+        marginTop: "1rem",
+        zIndex: 1000,
+      }}
+    >
+      {notifications.length === 0 ? (
+        <p>No new notifications</p>
+      ) : (
+        notifications.map((notification, idx) => (
+          <div
+            key={idx}
+            style={{
+              backgroundColor: notification.seen ? "transparent" : "#eaeaea",
+              display: "flex",
+              alignItems: "center",
+              padding: "10px",
+              borderRadius: "8px",
+              marginBottom: "0.5rem",
+              transition: "background-color 200ms ease",
+              cursor: "pointer",
+            }}
+            onClick={(e) => {
+              const entityId = notification.blog?.blog_id || notification._id;
+              handleNotificationClick(
+                e,
+                notification.type,
+                notification._id,
+                entityId,
+                notification.user._id
+              );
+            }}
+          >
+            <img
+              src={notification.user.profile_picture}
+              alt="User"
+              className="rounded-circle"
+              style={{
+                height: "40px",
+                width: "40px",
+                objectFit: "cover",
+                marginRight: "10px",
+              }}
+            />
+            <div style={{ flexGrow: 1 }}>
+              <p style={{ margin: 0, fontWeight: 500 }}>
+                {notification.type === "follow"
+                  ? `${notification.user.fullname} started following you`
+                  : notification.type === "like"
+                  ? `${notification.user.fullname} liked your blog`
+                  : notification.type === "comment"
+                  ? `${notification.user.fullname} commented on your blog`
+                  : notification.type === "reply"
+                  ? `${notification.user.fullname} replied to your comment`
+                  : `${notification.user.fullname} commented on your blog`}
               </p>
+              <small style={{ color: "#888" }}>
+                {new Date(notification.createdAt).toLocaleString()}
+              </small>
             </div>
           </div>
-        );
-      })}
-      {/* <div className="list-dropdown">
-        <Link to="/editor" className="link link-list">
-          <LuFileEdit />
-          <p className="m-0">เขียน</p>
-        </Link>
-        <Link to={`/user/${username}`} className="link pl-8 ">
-          โปรไฟล์
-        </Link>
-
-        <Link to={`/dashboard/blogs`} className="link pl-8 ">
-          Dashboard
-        </Link>
-
-        <Link to={`/settings/edit-profile`} className="link pl-8">
-          ตั้งค่า
-        </Link>
-        <Link to={`/account/preference/${userId}`} className="link pl-8">
-          Account Preference
-        </Link>
-        <Link to={`/settings/edit-profile`} className="link pl-8">
-          ช่วยเหลือ
-        </Link>
-      </div> */}
-    </AnimationWrapper>
+        ))
+      )}
+    </div>
   );
 };
 

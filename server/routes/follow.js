@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Notification = require("../models/notification");
+const Notification = require("../models/notifaications");
 const User = require("../models/user");
 
 router.post("/", async (req, res) => {
@@ -39,11 +39,11 @@ router.post("/", async (req, res) => {
 
       if (!existingNotification) {
         const notification = new Notification({
-          user: you._id,
+          user: you._id, // Who receives the notification (you)
+          notification_for: me._id, // Who is creating the notification (me)
           type: "follow",
-          message: `${me.fullname} started following you.`,
-          entity: me._id,
-          entityModel: "User",
+          entity: me._id, // The entity involved, which is a user
+          entityModel: "User", // Entity model type
         });
         await notification.save();
       }

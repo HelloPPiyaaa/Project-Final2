@@ -92,16 +92,10 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/profile`);
       setFetchUserData(response.data);
-      console.log("respone.data", response.data);
     } catch (error) {
       console.error("Error fetching reports:", error);
     }
   };
-
-  useEffect(() => {
-    console.log("users", users);
-    console.log("fetchUserData", fetchUserData);
-  }, [fetchUserData]);
 
   return (
     <div className="manageUser">

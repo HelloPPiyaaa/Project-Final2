@@ -1,119 +1,137 @@
-import React, { useState } from "react";
-import { LineChart } from "@mui/x-charts/LineChart";
-import { Select, MenuItem, InputLabel, FormControl } from "@mui/material";
-import { Card, CardContent, Typography, Grid } from "@mui/material"; // For cards
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2"; // Import the Line chart component
+import { Card, Row, Col } from "react-bootstrap"; // Import Bootstrap components
 import { IoHeart } from "react-icons/io5";
 import { FaCommentDots } from "react-icons/fa";
+import { fetchAllUser } from "../api/adminProfile";
 
 export default function DashboardUser() {
-  const [timeRange, setTimeRange] = useState("Month"); // Default to months
+  const [timeRange, setTimeRange] = useState("Month");
+  const [getBlog, setGetBlog] = useState<any[]>([]);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
+  const [totalReads, setTotalReads] = useState(0);
 
-  // Data for months and years
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const AllPost = await fetchAllUser();
+        setGetBlog(AllPost);
+      } catch (error) {
+        console.error("Error fetching user count:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    calculateTotals(getBlog);
+  }, [getBlog]);
+
+  const calculateTotals = (data: any) => {
+    let likes = 0;
+    let comments = 0;
+    let reads = 0;
+
+    data?.forEach((blog: any) => {
+      likes += blog.activity.total_likes;
+      comments += blog.activity.total_comments;
+      reads += blog.activity.total_reads;
+    });
+
+    setTotalLikes(likes);
+    setTotalComments(comments);
+    setTotalReads(reads);
+  };
+
   const monthData = {
-    xAxis: ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย."], // Month labels in Thai
-    series: [2, 5.5, 2, 8.5, 1.5, 5],
+    labels: ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค."],
+    datasets: [
+      {
+        label: "จำนวนผู้เข้าชม",
+        data: [15, 30, 8, 20, 12], // Update with actual data for the month
+        backgroundColor: "rgba(253, 70, 74, 0.6)",
+        borderColor: "rgba(253, 70, 74, 1)", // Line color
+        tension: 0.5,
+        fill: true, // Fill the area under the line
+      },
+    ],
   };
 
   const yearData = {
-    xAxis: [2562, 2563, 2564, 2565, 2566], // Thai years (พ.ศ.)
-    series: [15, 15, 8, 18, 12],
+    labels: ["2562", "2563", "2564", "2565", "2566"],
+    datasets: [
+      {
+        label: "จำนวนผู้เข้าชม",
+        data: [15, 25, 8, 20, 18], // Update with actual data for the year
+        backgroundColor: "rgba(253, 70, 74, 0.6)",
+        borderColor: "rgba(253, 70, 74, 1)", // Line color
+        tension: 0.5,
+        fill: true, // Fill the area under the line
+      },
+    ],
   };
 
-  // Update chart data based on selected time range
   const chartData = timeRange === "Month" ? monthData : yearData;
 
   return (
-    <div className="dash-user">
-      {/* Cards for Total Patients and Available Staff */}
-      <Grid
-        container
-        spacing={3}
-        justifyContent="center"
-        style={{ padding: "20px 15%" }}
-      >
-        {/* Make cards span the full width (or close to it) */}
-        <Grid item xs={12} sm={6} md={6}>
+    <div className="container mt-4">
+      <Row className="mb-4">
+        <Col md={6}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                จำนวนการกดถูกใจทั้งหมด
-              </Typography>
-              <Typography variant="h4" component="h2">
-                <span
-                
-                >
-                  <IoHeart color="#fd464a" size={40} />{" "}
-                  {/* Icon color and size */}
-                </span>{" "}
-                3,256
-              </Typography>
-            </CardContent>
+            <Card.Body>
+              <Card.Title>จำนวนการกดถูกใจทั้งหมด</Card.Title>
+              <Card.Text>
+                <IoHeart color="#fd464a" size={40} /> {totalLikes}
+              </Card.Text>
+            </Card.Body>
           </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={6}>
+        </Col>
+        <Col md={6}>
           <Card>
-            <CardContent>
-            <Typography variant="h6" color="textSecondary" gutterBottom>
-                จำนวนการแสดงความคิดเห็นทั้งหมด
-              </Typography>
-            <Typography variant="h4" component="h2">
-                <span
-                  
-                >
-                  <FaCommentDots color="#6fa3cb" size={35} />{" "}
-                  {/* Icon color and size */}
-                </span>{" "}
-                3,256
-              </Typography>
-            </CardContent>
+            <Card.Body>
+              <Card.Title>จำนวนการแสดงความคิดเห็นทั้งหมด</Card.Title>
+              <Card.Text>
+                <FaCommentDots color="#6fa3cb" size={35} /> {totalComments}
+              </Card.Text>
+            </Card.Body>
           </Card>
-        </Grid>
-      </Grid>
+        </Col>
+      </Row>
 
-      {/* Flex container for title and dropdown */}
-      <div
-        className="header"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center", // Vertically aligns items
-          marginTop: "20px",
-          padding: "2% 15% 0 15%",
-        }}
-      >
-        <h4 style={{ margin: 0 }}>สถิติการเข้าชมโพสต์</h4>
-        <FormControl style={{ minWidth: 120 }}>
-          <InputLabel>ระยะเวลา</InputLabel>
-          <Select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            label="ระยะเวลา"
-          >
-            <MenuItem value="Year">ตลอดทั้งปี</MenuItem>
-            <MenuItem value="Month">ตลอดทั้งเดือน</MenuItem>
-          </Select>
-        </FormControl>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4>สถิติการเข้าชมโพสต์</h4>
+        <label htmlFor="timeRange">ระยะเวลา</label>
+        <select
+          id="timeRange"
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value)}
+          className="form-select"
+        >
+          <option value="Month">ตลอดทั้งเดือน</option>
+          <option value="Year">ตลอดทั้งปี</option>
+        </select>
       </div>
 
-      {/* Center the chart */}
-      <div
-        className="lineChart"
-        style={{
-          display: "flex",
-          justifyContent: "center", // Horizontally center the chart
-          alignItems: "center", // Vertically center the chart (if necessary)
-          marginTop: "20px",
-          height: "400px", // Adjust the height to fit the chart space
-        }}
-      >
-        <LineChart
-          xAxis={[{ data: chartData.xAxis }]}
-          series={[
-            {
-              data: chartData.series,
+      <div>
+        <Line
+          data={chartData}
+          options={{
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: {
+                  display: false, // Turn off x-axis grid
+                },
+              },
+              y: {
+                beginAtZero: true,
+                grid: {
+                  display: false, // Turn off y-axis grid
+                },
+              },
             },
-          ]}
-          width={1000}
+          }}
           height={400}
         />
       </div>

@@ -77,17 +77,10 @@ const ProfilePage = () => {
   } = useContext(UserContext);
 
   useEffect(() => {
-    console.log("userProfile", userProfile);
-    console.log("id", id);
-    console.log("profileId", profileId);
-  }, [userProfile]);
-
-  useEffect(() => {
     const fetchData = async () => {
       try {
         if (id) {
           const profileData = await fetchUserProfile(id);
-          console.log("profileData", profileData);
           setUserProfile(profileData);
           setCheckUser(sessionStorage.getItem("userId") === id);
           setIsFollowing(
@@ -167,7 +160,6 @@ const ProfilePage = () => {
           data_to_send: { author: user_id },
         });
         formatedDate.user_id = user_id;
-        console.log("formatedDate", formatedDate);
         setBlogs(formatedDate);
       });
   };
@@ -190,31 +182,33 @@ const ProfilePage = () => {
   };
 
   const handleFollow = useCallback(async () => {
+    const API_BASE_URL = "http://localhost:3001/follow";
     try {
-      const response = await fetch(`${API_BASE_URL}/follows`, {
+      const response = await fetch(API_BASE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ me: sessionStorage.getItem("userId"), you: id }),
       });
+
       if (!response.ok) {
-        const statusText = response.statusText || "Unknown Error";
         throw new Error(
-          `Server returned ${response.status} ${statusText} for ${API_BASE_URL}`
+          `Server returned ${response.status} ${response.statusText} for ${API_BASE_URL}`
         );
       }
+
       const followerData = await response.json();
       setUserProfile(followerData.newFollow);
       setIsFollowing(followerData.newFollow.if_followed);
-    } catch (error) {
-      console.error("Error:", (error as Error).message);
+    } catch (error: any) {
+      console.error("Error:", error.message);
     }
   }, [id, isFollowing]);
 
   const handleUnfollow = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/follows/delete`, {
+      const response = await fetch(`${API_BASE_URL}/follow/delete`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +218,7 @@ const ProfilePage = () => {
       if (!response.ok) {
         const statusText = response.statusText || "Unknown Error";
         throw new Error(
-          `Server returned ${response.status} ${statusText} for ${API_BASE_URL}/follows/delete`
+          `Server returned ${response.status} ${statusText} for ${API_BASE_URL}/follow/delete`
         );
       }
       const res = await response.json();

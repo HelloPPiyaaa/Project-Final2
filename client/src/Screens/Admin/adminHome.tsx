@@ -275,15 +275,6 @@ const AdminHome: React.FC = () => {
     }
   };
 
-  const fetchBlogs = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/post`);
-      setReports(response.data);
-    } catch (error) {
-      console.error("Error fetching reports:", error);
-    }
-  };
-
   useEffect(() => {
     fetchReports();
   }, []);

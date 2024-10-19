@@ -38,15 +38,8 @@ export function FollowingModal({ userProfile }: any) {
     return newData;
   }, [userProfile, myUser, isFollowingModal]);
 
-  useEffect(() => {
-    console.log("userProfile", userProfile);
-    console.log("currentUser", currentUser);
-    console.log("myUser", myUser);
-    console.log("CheckFollowing", CheckFollowing);
-  }, [currentUser, userProfile, myUser, CheckFollowing]);
-
   const handleFollow = useCallback(async (you: string) => {
-    const API_BASE_URL = "http://localhost:3001/follows";
+    const API_BASE_URL = "http://localhost:3001/follow";
     try {
       const response = await fetch(API_BASE_URL, {
         method: "POST",
@@ -78,7 +71,7 @@ export function FollowingModal({ userProfile }: any) {
   }, []);
 
   const handleUnfollow = useCallback(async (you: string) => {
-    const API_BASE_URL_DELETE = "http://localhost:3001/follows/delete";
+    const API_BASE_URL_DELETE = "http://localhost:3001/follow/delete";
     try {
       const response = await fetch(API_BASE_URL_DELETE, {
         method: "DELETE",
