@@ -35,19 +35,21 @@ router.post("/", async (req, res) => {
   console.log("Email:", email);
   console.log("Password:", password);
 
-  Admin.findOne({ email: email })
-    .then((user) => {
-      if (!user) {
-        return res.status(403).json({ error: "ไม่พบผู้ใช้" });
-      }
+  try {
+    const user = await Admin.findOne({ email: email });
 
-      console.log("formDatatoSend(user)", formDatatoSend(user));
-      return res.status(200).json(formDatatoSend(user));
-    })
-    .catch((err) => {
-      console.log(err.message);
-      return res.status(500).json({ error: err.message });
-    });
+    if (!user) {
+      return res.status(403).json({ error: "ไม่พบผู้ใช้" });
+    }
+    if (password !== user.password) {
+      return res.status(403).json({ error: "รหัสผ่านไม่ถูกต้อง" });
+    }
+    console.log("formDatatoSend(user)", formDatatoSend(user));
+    return res.status(200).json(formDatatoSend(user));
+  } catch (err) {
+    console.log(err.message);
+    return res.status(500).json({ error: "เกิดข้อผิดพลาดในระบบ" });
+  }
 });
 
 // Middleware ตรวจสอบสิทธิ์ของแอดมิน

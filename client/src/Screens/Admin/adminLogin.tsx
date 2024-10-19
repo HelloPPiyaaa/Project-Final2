@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef, useContext } from "react";
-import { FaCheckCircle } from "react-icons/fa";
-import { IoCloseCircle } from "react-icons/io5";
 import logohead from "../../pic/logo-headV2.png";
 import "../../misc/login.css";
 import { Link, useNavigate } from "react-router-dom";
@@ -54,98 +52,20 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
         setUserAuth(data);
         userInSession("userId", data.username);
         userIdInSession("adminId", data._id);
-
-        console.log("data.role", data);
-
-        if (data.role === "admin") {
-          navigate(`/admin/${data._id}`);
-        } else {
-          navigate("/");
-        }
+        navigate(`/admin/${data._id}`);
       })
       .catch((error) => {
+        // Set the error message in the alertMessage state
+        setAlertMessage(error.message); // Use the error message
         toast.error(error.message);
       });
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // ป้องกันไม่ให้หน้ารีเฟรช
-
-    // ส่งข้อมูลฟอร์มไปยัง server
+    event.preventDefault();
+    setAlertMessage(null); // Clear any previous error messages
     userAuthThroughServer("/admin", { email, password });
   };
-
-  const handleAlertClose = () => {
-    setAlertMessage(null);
-  };
-
-  useEffect(() => {
-    const toggleBtns = document.querySelectorAll<HTMLAnchorElement>(".toggle");
-    const mainElement = document.querySelector<HTMLElement>("main");
-    const bulletElements =
-      document.querySelectorAll<HTMLElement>(".bullets span");
-
-    const handleFocus = (inp: HTMLInputElement) => {
-      inp.classList.add("active");
-    };
-
-    const handleBlur = (inp: HTMLInputElement) => {
-      if (inp.value === "") {
-        inp.classList.remove("active");
-      }
-    };
-
-    const handleToggleClick = () => {
-      mainElement?.classList.toggle("sign-up-mode");
-    };
-
-    const moveSlider = (event: Event) => {
-      const index = (event.currentTarget as HTMLElement).dataset.value;
-      const currentImage = document.querySelector<HTMLImageElement>(
-        `.img-${index}`
-      );
-      const textSlider = document.querySelector<HTMLElement>(".text-group");
-
-      if (currentImage && textSlider) {
-        bulletElements.forEach((bull) => bull.classList.remove("active"));
-        (event.currentTarget as HTMLElement).classList.add("active");
-
-        const allImages = document.querySelectorAll<HTMLImageElement>(".image");
-        allImages.forEach((img) => img.classList.remove("show"));
-
-        currentImage.classList.add("show");
-        textSlider.style.transform = `translateY(${
-          -(parseInt(index || "1", 10) - 1) * 2.2
-        }rem)`;
-      }
-    };
-
-    toggleBtns.forEach((btn) =>
-      btn.addEventListener("click", handleToggleClick)
-    );
-    bulletElements.forEach((bullet) =>
-      bullet.addEventListener("click", moveSlider)
-    );
-
-    const inputs = document.querySelectorAll<HTMLInputElement>(".input-field");
-    inputs.forEach((inp) => {
-      inp.addEventListener("focus", () => handleFocus(inp));
-      inp.addEventListener("blur", () => handleBlur(inp));
-    });
-
-    return () => {
-      toggleBtns.forEach((btn) =>
-        btn.removeEventListener("click", handleToggleClick)
-      );
-      bulletElements.forEach((bullet) =>
-        bullet.removeEventListener("click", moveSlider)
-      );
-      inputs.forEach((inp) => {
-        inp.removeEventListener("focus", () => handleFocus(inp));
-        inp.removeEventListener("blur", () => handleBlur(inp));
-      });
-    };
-  }, []);
 
   return (
     <div className="login-container">
@@ -193,6 +113,15 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
                     <label className="label-login">รหัสผ่าน</label>
                   </div>
 
+                  {alertMessage && (
+                    <h3
+                      className="error-message"
+                      style={{ color: "red", fontSize: "1rem" }}
+                    >
+                      {alertMessage}
+                    </h3>
+                  )}
+
                   <button type="submit" className="sign-btn">
                     เข้าสู่ระบบ
                   </button>
@@ -203,42 +132,6 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
                   </p>
                 </div>
               </form>
-            </div>
-
-            <div className="carousell">
-              <div className="images-wrapper">
-                <img
-                  src="../../pic/image1.png"
-                  className="image img-1 show"
-                  alt=""
-                />
-                <img
-                  src="../../pic/image2.png"
-                  className="image img-2"
-                  alt=""
-                />
-                <img
-                  src="../../pic/image3.png"
-                  className="image img-3"
-                  alt=""
-                />
-              </div>
-
-              <div className="text-slider">
-                <div className="text-wrap">
-                  <div className="text-group">
-                    <h2>สร้างประสบการณ์ของคุณเอง</h2>
-                    <h2>แลกเปลี่ยนความคิดเห็นกับผู้อื่น</h2>
-                    <h2>หาความรู้กับบุคคลทั่วไป</h2>
-                  </div>
-                </div>
-
-                <div className="bullets">
-                  <span className="active" data-value="1"></span>
-                  <span data-value="2"></span>
-                  <span data-value="3"></span>
-                </div>
-              </div>
             </div>
           </div>
         </div>

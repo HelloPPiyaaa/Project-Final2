@@ -77,28 +77,44 @@ router.post("/edit-profile/notifications/:id", async (req, res) => {
 // Route URL to delete user profile by ID
 router.delete("/edit-profile/delete/:id", async function (req, res, next) {
   try {
+    // Find the user by ID
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+    console.log("user", user);
 
+    // Verify the user's password
     const isMatch = await bcrypt.compare(req.body.password, user.password);
+    console.log("req.body.password", req.body.password);
+    console.log("req.body.password", user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Incorrect password" });
     }
+
+    // Delete related posts
     await Post.deleteMany({ author: req.params.id });
+
+    // Delete related notifications
     await Notification.deleteMany({ user: req.params.id });
+
+    // Delete related likes
     await Like.deleteMany({ user: req.params.id });
+
+    // Delete related comments
     await Comment.deleteMany({ blog_author: req.params.id });
+
+    // Delete related reports (user is either the reporter or the reported)
     await Report.deleteMany({
       $or: [{ user: req.params.id }, { reportedUser: req.params.id }],
     });
-    await User.findByIdAndDelete(req.params.id);
-    console.log("Deleted successfully!");
 
-    res.json({ message: "User and related data deleted successfully" });
+    // Finally, delete the user profile
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "User deleted successfully" }); // This is the expected message
   } catch (err) {
-    console.error(err);
+    console.error("Error deleting user and related data: ", err);
     res.status(500).json({ error: "Error deleting user and related data" });
   }
 });

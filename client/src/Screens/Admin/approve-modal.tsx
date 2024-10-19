@@ -4,51 +4,7 @@ import axios, { AxiosResponse } from "axios";
 import Cookies from "js-cookie";
 import { Link, useNavigate } from "react-router-dom";
 import { getDay } from "../../common/date";
-
-interface Report {
-  _id: string;
-  reason: string;
-  verified: boolean;
-  status: string;
-  createdAt: string;
-  reportedBy: {
-    _id: string;
-    fullname: string;
-  };
-  post: {
-    _id: string;
-    author: {
-      _id: string;
-      fullname: string;
-      banner: string;
-    };
-    content: [
-      {
-        time: number;
-        blocks: [
-          {
-            id: string;
-            type: string;
-            data: {
-              text: string;
-            };
-          }
-        ];
-        version: string;
-      }
-    ];
-    image: string;
-    topic: string;
-    detail: string;
-    tags: string[];
-    banner: string;
-    publishedAt: string;
-    contentWithImages: {
-      content: string;
-      images?: string[];
-    }[];
-  };
-}
+import { Report } from "./adminHome";
 
 interface ReportDetailsModalProps {
   showModal: boolean;
@@ -65,6 +21,10 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
 }) => {
   const navigate = useNavigate();
   const API_BASE_URL = "http://localhost:3001";
+
+  useEffect(() => {
+    console.log("report", report);
+  }, [report]);
 
   const verifyReport = async (
     reportId: string,
@@ -164,7 +124,11 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
             <div className="detail-user d-flex  justify-content-between my-4">
               <div className="d-flex gap-2 align-items-start">
                 <img
-                  src={report?.post.author ? report?.post.author.banner : ""}
+                  src={
+                    report?.post.author
+                      ? report?.post.author.profile_picture
+                      : ""
+                  }
                   alt=""
                   className="rounded-circle"
                   style={{ width: "3rem", height: "3rem" }}

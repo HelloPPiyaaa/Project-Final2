@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const API_BASE_URL = "http://localhost:3001";
 
 export const fetchAdminProfile = async (id: string): Promise<any> => {
@@ -139,6 +141,36 @@ export const deleteUserAPI = async (userId: string): Promise<void> => {
     }
   } catch (error) {
     console.error("Error deleting user:", error);
+    throw error;
+  }
+};
+
+export const updateUserAPI = async (
+  userId: string,
+  fullname: string,
+  email: string
+): Promise<void> => {
+  const adminToken = sessionStorage.getItem("userId"); // Get the admin token from sessionStorage
+
+  if (!adminToken) {
+    throw new Error("No admin token found. Unauthorized request.");
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/user/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminToken}`, // Send token in the header
+      },
+      body: JSON.stringify({ fullname, email }), // Send updated data in the request body
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update user");
+    }
+  } catch (error) {
+    console.error("Error updating user:", error);
     throw error;
   }
 };

@@ -34,7 +34,7 @@ import { Button } from "react-bootstrap";
 import { Line } from "react-chartjs-2"; // ใช้แสดงกราฟ Line
 import "chart.js/auto"; // สำหรับการใช้งาน Chart.js
 
-interface Report {
+export interface Report {
   _id: string;
   reason: string;
   verified: boolean;
@@ -50,6 +50,7 @@ interface Report {
       _id: string;
       fullname: string;
       banner: string;
+      profile_picture: string;
     };
     content: [
       {
@@ -108,6 +109,8 @@ const AdminHome: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
+  const [users, setUsers] = useState<any>([]);
+
   const handleShowModal = (report: any) => {
     setSelectedReport(report);
     setShowModal(true);
@@ -123,13 +126,26 @@ const AdminHome: React.FC = () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/report`);
         setReports(response.data);
-        console.log("respone.data", response.data);
       } catch (error) {
         console.error("Error fetching reports:", error);
       }
     };
 
     fetchReports();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/profile`);
+        setUsers(response.data);
+        console.log("respone.data", response.data);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   const convertPostsToGrowthData = (posts: any[]) => {
@@ -1231,7 +1247,7 @@ const AdminHome: React.FC = () => {
             </div>
           </div>
         )}
-        {selectedCate === "manage-user" && <ManageUser />}
+        {selectedCate === "manage-user" && <ManageUser users={users} />}
         {selectedCate === "manage-user" && (
           <div className="right">
             <div className="top">

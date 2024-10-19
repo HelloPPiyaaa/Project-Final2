@@ -5,18 +5,21 @@ import {
   fetchAdminProfile,
   fetchUsersAPI,
   deleteUserAPI,
+  updateUserAPI,
 } from "../../api/adminProfile";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import GenderChart from "./Chart/GenderChart";
+import { Button, Modal, Form } from "react-bootstrap";
+import axios from "axios";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai"; // Import eye icons
+import DeleteAccountModal from "../DeleteAccount-confirm";
+import DeleteAdminAccountModal from "./adminDelete-account";
 
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  profile_picture: string;
+interface UserProps {
+  users: any[];
 }
 
-const ManageUser: React.FC = () => {
+const ManageUser: React.FC<UserProps> = ({ users }) => {
   const { id } = useParams<{ id: string }>();
   const [adminProfile, setAdminProfile] = useState<any>(null);
   const [username, setUsername] = useState("");
@@ -24,48 +27,80 @@ const ManageUser: React.FC = () => {
   const [tel, setTel] = useState("");
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [fetchUserData, setFetchUserData] = useState<any>([]);
+
+  // State to manage password visibility for each user
+  const [passwordVisibility, setPasswordVisibility] = useState<{
+    [key: string]: boolean;
+  }>({});
+
+  const API_BASE_URL = "http://localhost:3001";
+  const navigate = useNavigate();
 
   const genderData = {
     male: 30,
     female: 20,
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (id) {
-          const profileData = await fetchAdminProfile(id);
-          setUsername(profileData.username);
-          setAdminProfile(profileData);
-          setEmail(profileData.email);
-          setTel(profileData.tel);
-          setFirstname(profileData.firstname);
-          setLastname(profileData.lastname);
-        }
-        const usersData = await fetchUsersAPI();
-        console.log("usersData", usersData);
-        setUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, [id]);
-
-  const handleEditUser = (userId: string) => {
-    console.log("Edit user with ID:", userId);
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setShowEditModal(true);
   };
 
   const handleDeleteUser = async (userId: string) => {
-    try {
-      await deleteUserAPI(userId);
-      setUsers(users.filter((user) => user._id !== userId));
-    } catch (error) {
-      console.error("Error deleting user:", error);
+    setSelectedUser(userId);
+    setShowDeleteModal(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (selectedUser) {
+      try {
+        await updateUserAPI(selectedUser._id, firstname, email);
+        setShowEditModal(false);
+      } catch (error) {
+        console.error("Error updating user:", error);
+        // Handle error (e.g., show notification)
+      }
     }
   };
+
+  // Function to toggle password visibility for a specific user
+  const togglePasswordVisibility = (userId: string) => {
+    setPasswordVisibility((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+  };
+
+  const handleDeleteSuccess = () => {
+    setShowDeleteModal(false);
+    fetchUsers();
+    alert("Your account has been deleted.");
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/profile`);
+      setFetchUserData(response.data);
+      console.log("respone.data", response.data);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    }
+  };
+
+  useEffect(() => {
+    console.log("users", users);
+    console.log("fetchUserData", fetchUserData);
+  }, [fetchUserData]);
 
   return (
     <div className="manageUser">
@@ -89,15 +124,7 @@ const ManageUser: React.FC = () => {
             <div className="middle">
               <div className="left">
                 <h3>ผู้ใช้ใหม่</h3>
-                <h1>256</h1>
-              </div>
-              <div className="progres">
-                <svg className="svg4">
-                  <circle cx="38" cy="38" r="36"></circle>
-                </svg>
-                <div className="number">
-                  <p>80%</p>
-                </div>
+                <h1>-</h1>
               </div>
             </div>
             <small className="text-muted1">Last 24 Hour</small>
@@ -121,38 +148,149 @@ const ManageUser: React.FC = () => {
                 maxHeight: "300px",
               }}
             >
-              {/* {users.map((user) => (
-                <div className="item" key={user._id}>
-                  <div className="profile-photo">
-                    <img src={user.profile_picture} alt={user.username} />
-                  </div>
-                  <div className="right">
-                    <div className="info">
-                      <h3>{user.username}</h3>
-                      <small className="text-muted1">{user.email}</small>
-                    </div>
-                    <div className="manage d-flex ">
-                      <div
-                        className="edit warning"
-                        style={{ paddingRight: "10px" }}
-                        onClick={() => handleEditUser(user._id)}
-                      >
-                        <h3>Edit</h3>
-                      </div>
-                      <div
-                        className="delete danger"
-                        onClick={() => handleDeleteUser(user._id)}
-                      >
-                        <h3>Delete</h3>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))} */}
+              <table>
+                <thead className="pt-5">
+                  <tr>
+                    <th>Date</th>
+                    <th>User Name</th>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.length > 0 ? (
+                    fetchUserData.length > 0 ? (
+                      fetchUserData.map((u: any) => (
+                        <tr key={u._id}>
+                          <td>{new Date(u.joinedAt).toLocaleDateString()}</td>
+                          <td>{u.fullname}</td>
+                          <td>{u.email}</td>
+                          <td className="warning">
+                            <span>
+                              {passwordVisibility[u._id] ? u.password : "*****"}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(u._id)}
+                              style={{
+                                border: "none",
+                                background: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {passwordVisibility[u._id] ? (
+                                <AiFillEyeInvisible />
+                              ) : (
+                                <AiFillEye />
+                              )}
+                            </button>
+                          </td>
+                          <td className="primary">
+                            <Button onClick={() => handleEditUser(u)}>
+                              Edit
+                            </Button>
+                          </td>
+                          <td>
+                            <Button onClick={() => handleDeleteUser(u._id)}>
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      users.map((u: any) => (
+                        <tr key={u._id}>
+                          <td>{new Date(u.joinedAt).toLocaleDateString()}</td>
+                          <td>{u.fullname}</td>
+                          <td>{u.email}</td>
+                          <td className="warning">
+                            <span>
+                              {passwordVisibility[u._id] ? u.password : "*****"}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(u._id)}
+                              style={{
+                                border: "none",
+                                background: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {passwordVisibility[u._id] ? (
+                                <AiFillEyeInvisible />
+                              ) : (
+                                <AiFillEye />
+                              )}
+                            </button>
+                          </td>
+                          <td className="primary">
+                            <Button onClick={() => handleEditUser(u)}>
+                              Edit
+                            </Button>
+                          </td>
+                          <td>
+                            <Button onClick={() => handleDeleteUser(u._id)}>
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )
+                  ) : (
+                    <tr>
+                      <td colSpan={5}>No reports available</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Edit User Modal */}
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit User</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formFullname">
+              <Form.Label>Fullname</Form.Label>
+              <Form.Control
+                type="text"
+                value={selectedUser?.fullname || ""}
+                onChange={(e) => setFirstname(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formEmail">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={selectedUser?.email || ""}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleUpdateUser}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete User Modal */}
+      <DeleteAdminAccountModal
+        userId={selectedUser}
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDeleteSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 };
