@@ -51,6 +51,30 @@ router.post("/edit-profile/update/:id", async (req, res) => {
   }
 });
 
+router.put("/edit-profile/update-info/:id", async (req, res) => {
+  const userId = req.params.id;
+  const { fullname, email } = req.body;
+
+  try {
+    // Check if the new email already exists for another user
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser._id.toString() !== userId) {
+      return res.status(400).json({ error: "Email is already in use." });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { fullname, email },
+      { new: true }
+    );
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
 // Add this route in your existing user routes file
 router.post("/edit-profile/notifications/:id", async (req, res) => {
   const userId = req.params.id;

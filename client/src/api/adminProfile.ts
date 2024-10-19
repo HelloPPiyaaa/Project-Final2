@@ -157,14 +157,17 @@ export const updateUserAPI = async (
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/user/${userId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${adminToken}`, // Send token in the header
-      },
-      body: JSON.stringify({ fullname, email }), // Send updated data in the request body
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/profile/edit-profile/update-info/${userId}`, // Fixed the URL here
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`, // Send token in the header
+        },
+        body: JSON.stringify({ fullname, email }), // Send updated data in the request body
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to update user");

@@ -21,24 +21,14 @@ interface UserProps {
 
 const ManageUser: React.FC<UserProps> = ({ users }) => {
   const { id } = useParams<{ id: string }>();
-  const [adminProfile, setAdminProfile] = useState<any>(null);
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [tel, setTel] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
+  const [fullname, setFullname] = useState("");
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [adminPassword, setAdminPassword] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [fetchUserData, setFetchUserData] = useState<any>([]);
 
-  // State to manage password visibility for each user
   const [passwordVisibility, setPasswordVisibility] = useState<{
     [key: string]: boolean;
   }>({});
@@ -53,6 +43,8 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
 
   const handleEditUser = (user: any) => {
     setSelectedUser(user);
+    setFullname(user.fullname);
+    setEmail(user.email);
     setShowEditModal(true);
   };
 
@@ -61,14 +53,23 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
     setShowDeleteModal(true);
   };
 
+  const handleModalClose = () => {
+    setShowEditModal(false);
+    setFullname("");
+    setEmail("");
+    setSelectedUser(null);
+  };
+
   const handleUpdateUser = async () => {
-    if (selectedUser) {
-      try {
-        await updateUserAPI(selectedUser._id, firstname, email);
-        setShowEditModal(false);
-      } catch (error) {
-        console.error("Error updating user:", error);
-        // Handle error (e.g., show notification)
+    try {
+      await updateUserAPI(selectedUser._id, fullname, email);
+      setShowEditModal(false);
+      fetchUsers();
+    } catch (error: any) {
+      if (error.message.includes("Email is already in use.")) {
+        alert("This email is already in use. Please choose another one.");
+      } else {
+        console.error("Failed to update user:", error);
       }
     }
   };
@@ -224,12 +225,18 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
                             </button>
                           </td>
                           <td className="primary">
-                            <Button onClick={() => handleEditUser(u)}>
+                            <Button
+                              disabled={u.google_auth ? true : false}
+                              onClick={() => handleEditUser(u)}
+                            >
                               Edit
                             </Button>
                           </td>
                           <td>
-                            <Button onClick={() => handleDeleteUser(u._id)}>
+                            <Button
+                              disabled={u.google_auth ? true : false}
+                              onClick={() => handleDeleteUser(u._id)}
+                            >
                               Delete
                             </Button>
                           </td>
@@ -248,8 +255,7 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
         </div>
       </div>
 
-      {/* Edit User Modal */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+      <Modal show={showEditModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>Edit User</Modal.Title>
         </Modal.Header>
@@ -259,8 +265,8 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
               <Form.Label>Fullname</Form.Label>
               <Form.Control
                 type="text"
-                value={selectedUser?.fullname || ""}
-                onChange={(e) => setFirstname(e.target.value)}
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
               />
             </Form.Group>
 
@@ -268,14 +274,14 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
-                value={selectedUser?.email || ""}
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+          <Button variant="secondary" onClick={handleModalClose}>
             Close
           </Button>
           <Button variant="primary" onClick={handleUpdateUser}>
