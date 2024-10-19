@@ -30,6 +30,7 @@ const DeleteAccountModal: React.FC<{
         onDeleteSuccess();
         localStorage.removeItem("userId");
         sessionStorage.removeItem("userId");
+        navigate("/");
       } else {
         setErrorMessage(response.data.error);
       }

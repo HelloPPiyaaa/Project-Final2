@@ -25,8 +25,7 @@ const UserNavigationPanel = () => {
           <LuFileEdit />
           <p className="m-0">เขียน</p>
         </Link>
-
-        <Link to={`/user/${username}`} className="link pl-8 ">
+        <Link to={`/user/${userId}`} className="link pl-8 ">
           โปรไฟล์
         </Link>
 

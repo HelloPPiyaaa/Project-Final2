@@ -1,12 +1,12 @@
 const API_BASE_URL = "http://localhost:3001";
 
 export const fetchProfile = async (me: string | null): Promise<any> => {
+  console.log("me", me);
   if (!me) {
     throw new Error("Invalid user ID");
   }
 
-  const url = `${API_BASE_URL}/follow/${me}`;
-  console.log("Request URL:", url);
+  const url = `${API_BASE_URL}/follows/${me}`;
 
   try {
     const response = await fetch(url, {
@@ -34,6 +34,7 @@ export const fetchProfile = async (me: string | null): Promise<any> => {
     } else {
       console.error("Response does not contain ID:", responseData);
     }
+    console.log("responseData", responseData);
     return responseData;
   } catch (error) {
     console.error("Error:", (error as Error).message);
@@ -52,8 +53,7 @@ export const fetchFollow = async (me: string | null): Promise<any> => {
   if (!me) {
     throw new Error("Invalid user ID");
   }
-
-  const url = `${API_BASE_URL}/follow/users/${me}`;
+  const url = `${API_BASE_URL}/follows/users/${me}`;
   console.log("Request URL:", url);
 
   try {

@@ -21,7 +21,6 @@ interface Report {
       _id: string;
       fullname: string;
       banner: string;
-      profile_picture: string;
     };
     content: [
       {
@@ -165,21 +164,25 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
             <div className="detail-user d-flex  justify-content-between my-4">
               <div className="d-flex gap-2 align-items-start">
                 <img
-                  src={report?.post.author.profile_picture}
+                  src={report?.post.author ? report?.post.author.banner : ""}
                   alt=""
                   className="rounded-circle"
                   style={{ width: "3rem", height: "3rem" }}
                 />
 
                 <p className="m-0" style={{ textTransform: "capitalize" }}>
-                  {report?.post.author.fullname}
+                  {report?.post.author ? report?.post.author.fullname : ""}
                   <br />@
                   <Link
-                    to={`/user/${report?.post.author.fullname}`}
+                    to={
+                      report?.post.author
+                        ? `/user/${report?.post.author._id}`
+                        : "/404"
+                    }
                     className="underline "
                     style={{ color: "inherit" }}
                   >
-                    {report?.post.author.fullname}
+                    {report?.post.author ? report?.post.author.fullname : ""}
                   </Link>
                 </p>
               </div>

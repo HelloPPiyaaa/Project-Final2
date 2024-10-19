@@ -10,17 +10,21 @@ const notificationSchema = mongoose.Schema(
     blog: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "blogs",
+      ref: "Post",
     },
     notification_for: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "users",
+      ref: "User",
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "users",
+      ref: "User",
+    },
+    like: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Like",
     },
     comment: {
       type: mongoose.Schema.Types.ObjectId,

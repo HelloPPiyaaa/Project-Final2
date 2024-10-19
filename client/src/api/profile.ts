@@ -5,6 +5,8 @@ export const fetchUserProfile = async (id: string): Promise<any> => {
     throw new Error("Invalid user ID");
   }
 
+  console.log("id", id);
+
   const url = `${API_BASE_URL}/profile/${id}`;
   console.log("Request URL:", url);
 

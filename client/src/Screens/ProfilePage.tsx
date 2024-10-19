@@ -1,6 +1,6 @@
 import axios from "axios";
-import { useContext, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { API_BASE_URL } from "../api/post";
 import AnimationWrapper from "./page-animation";
 import Loader from "../components/loader.component";
@@ -14,6 +14,15 @@ import NoDataMessage from "../components/nodata.component";
 import LoadMoreDataBtn from "../components/load-more.component";
 import InPageNavigation from "../components/Inpage-navigation";
 import PageNotFound from "./404";
+import { FaUserFriends } from "react-icons/fa";
+import {
+  fetchLikedPosts,
+  fetchPostsByUser,
+  fetchSavedPosts,
+  fetchUserProfile,
+} from "../api/profile";
+import { FollowerModal } from "./follower-modal";
+import { FollowingModal } from "./following-modal";
 
 export const profileData = {
   fullname: "",
@@ -41,6 +50,17 @@ const ProfilePage = () => {
   const [blogs, setBlogs] = useState<BlogState | null>(null);
   const [profileLoaded, setProfileLoaded] = useState("");
 
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [checkUser, setCheckUser] = useState<boolean>(false);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [likedPosts, setLikedPosts] = useState<Post[]>([]);
+  const [savedPosts, setSavedPosts] = useState<Post[]>([]);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const userId = sessionStorage.getItem("userId");
+
   let {
     fullname,
     username: profile_username,
@@ -56,14 +76,60 @@ const ProfilePage = () => {
     userAuth: { username },
   } = useContext(UserContext);
 
-  const fetchUserProfile = () => {
+  useEffect(() => {
+    console.log("userProfile", userProfile);
+    console.log("id", id);
+    console.log("profileId", profileId);
+  }, [userProfile]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (id) {
+          const profileData = await fetchUserProfile(id);
+          console.log("profileData", profileData);
+          setUserProfile(profileData);
+          setCheckUser(sessionStorage.getItem("userId") === id);
+          setIsFollowing(
+            profileData.followers.includes(sessionStorage.getItem("userId"))
+          );
+          // ดึงบล็อกที่ผู้ที่ Login โพสต์
+          const posts = await fetchPostsByUser(id);
+
+          // กรองเฉพาะบล็อกที่ถูกโพสต์โดยผู้ใช้ที่ login
+          const filteredPosts = posts.filter(
+            (post: Post) => post.user._id === sessionStorage.getItem("userId")
+          );
+
+          // ตั้งค่าบล็อกที่กรองแล้ว
+          setUserPosts(filteredPosts);
+
+          // ดึงบล็อกที่ผู้ใช้กดถูกใจ
+          const liked = await fetchLikedPosts(id);
+          const filteredLiked = liked.filter((post: Post[]) => post !== null);
+          console.log("Fetched liked posts in Profile:", filteredLiked);
+          setLikedPosts(filteredLiked as Post[]);
+
+          // ดึงบล็อกที่ผู้ใช้บันทึก
+          const saved = await fetchSavedPosts(id);
+          const filteredSaved = saved.filter((post: Post[]) => post !== null);
+          console.log("Fetched save posts in Profile:", filteredSaved);
+          setSavedPosts(filteredSaved as Post[]);
+        }
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  const fetchUserProfiles = () => {
     axios
       .post(API_BASE_URL + "/users/get-profile", {
-        username: profileId,
+        id: profileId,
       })
       .then(({ data: user }) => {
         if (user !== null) {
-          console.log("User data: ", user);
           setProfile(user);
         }
         if (profileId) {
@@ -82,6 +148,7 @@ const ProfilePage = () => {
     page = 1,
     user_id,
   }: {
+    _id?: string;
     page?: number;
     user_id?: string;
   }) => {
@@ -100,7 +167,7 @@ const ProfilePage = () => {
           data_to_send: { author: user_id },
         });
         formatedDate.user_id = user_id;
-        console.log(formatedDate);
+        console.log("formatedDate", formatedDate);
         setBlogs(formatedDate);
       });
   };
@@ -112,7 +179,7 @@ const ProfilePage = () => {
 
     if (blogs === null) {
       resetState();
-      fetchUserProfile();
+      fetchUserProfiles();
     }
   }, [profileId, blogs]);
 
@@ -121,6 +188,52 @@ const ProfilePage = () => {
     setLoading(true);
     setProfileLoaded("");
   };
+
+  const handleFollow = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/follows`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ me: sessionStorage.getItem("userId"), you: id }),
+      });
+      if (!response.ok) {
+        const statusText = response.statusText || "Unknown Error";
+        throw new Error(
+          `Server returned ${response.status} ${statusText} for ${API_BASE_URL}`
+        );
+      }
+      const followerData = await response.json();
+      setUserProfile(followerData.newFollow);
+      setIsFollowing(followerData.newFollow.if_followed);
+    } catch (error) {
+      console.error("Error:", (error as Error).message);
+    }
+  }, [id, isFollowing]);
+
+  const handleUnfollow = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/follows/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ me: sessionStorage.getItem("userId"), you: id }),
+      });
+      if (!response.ok) {
+        const statusText = response.statusText || "Unknown Error";
+        throw new Error(
+          `Server returned ${response.status} ${statusText} for ${API_BASE_URL}/follows/delete`
+        );
+      }
+      const res = await response.json();
+      setUserProfile(res.unFollow);
+      setIsFollowing(false);
+    } catch (error) {
+      console.error("Error:", (error as Error).message);
+    }
+  }, [id, isFollowing]);
 
   return (
     <AnimationWrapper>
@@ -143,8 +256,23 @@ const ProfilePage = () => {
               {total_posts.toLocaleString()} บล็อก -
               {total_reads.toLocaleString()} อ่าน
             </p>
+            <div className="follow">
+              {userProfile && (
+                <div className="follow-icon">
+                  <FaUserFriends />
+                  <FollowerModal userProfile={userProfile} />
+                </div>
+              )}
+              <div className="bar-icon"></div>
+              {userProfile && (
+                <div className="follow-icon">
+                  <FaUserFriends />
+                  <FollowingModal userProfile={userProfile} />
+                </div>
+              )}
+            </div>
 
-            <div className="d-flex gap-2 mt-2">
+            {/* <div className="d-flex gap-2 mt-2">
               {profileId === username ? (
                 <Link
                   to="/settings/edit-profile"
@@ -153,9 +281,33 @@ const ProfilePage = () => {
                   แก้ไขโปรไฟล์
                 </Link>
               ) : (
-                " "
+                <Link
+                  to="/settings/edit-profile"
+                  className="btn-light rounded-3"
+                >
+                  Follow
+                </Link>
               )}
-            </div>
+            </div> */}
+            {checkUser ? (
+              <div className="edit d-flex justify-content-center my-4">
+                <Link
+                  to="/settings/edit-profile"
+                  className="btn-light rounded-3"
+                >
+                  แก้ไขโปรไฟล์
+                </Link>
+              </div>
+            ) : (
+              <div className="edit d-flex justify-content-center my-4">
+                <p
+                  className="btn-light rounded-3"
+                  onClick={isFollowing ? handleUnfollow : handleFollow}
+                >
+                  {isFollowing ? "Unfollow" : "Follow"}
+                </p>
+              </div>
+            )}
 
             <AboutUser
               className="max-md"

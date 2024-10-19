@@ -7,11 +7,11 @@ interface UserCardProps {
 }
 
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
-  let { fullname, profile_picture, username } = user;
+  let { _id, fullname, profile_picture, username } = user;
 
   return (
     <Link
-      to={`/user/${username}`}
+      to={`/user/${_id}`}
       className="d-flex gap-3 align-items-center mb-4"
       style={{ color: "inherit", textDecoration: "none" }}
     >

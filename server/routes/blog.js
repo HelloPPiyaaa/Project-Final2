@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Blog = require("../models/blog");
+const Like = require("../models/like");
 const Notifications = require("../models/notifaications");
 const Comment = require("../models/comments");
 
@@ -153,38 +154,73 @@ router.post("/get-blog", (req, res) => {
     });
 });
 
-router.post("/like-blog", verifyJWT, (req, res) => {
-  let user_id = req.user;
+router.post("/like-blog", verifyJWT, async (req, res) => {
+  try {
+    const user_id = req.user; // Assuming req.user contains the authenticated user's id
+    const { _id, islikedByUser } = req.body;
+    const incrementVal = !islikedByUser ? 1 : -1;
 
-  let { _id, islikedByUser } = req.body;
+    // Update the total likes count in the blog
+    const blog = await Blog.findOneAndUpdate(
+      { _id },
+      { $inc: { "activity.total_likes": incrementVal } }
+    );
 
-  let incrementVal = !islikedByUser ? 1 : -1;
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found" });
+    }
 
-  Blog.findOneAndUpdate(
-    { _id },
-    { $inc: { "activity.total_likes": incrementVal } }
-  ).then((blog) => {
     if (!islikedByUser) {
-      let like = new Notifications({
+      // User is liking the post
+      const newLike = new Like({
+        user: user_id,
+        post: _id,
+      });
+      const savedLike = await newLike.save();
+
+      // Add the new like's _id to the blog's likes array
+      blog.likes.push(savedLike._id);
+      await blog.save();
+
+      // Create a notification for the like
+      const notification = new Notifications({
         type: "like",
         blog: _id,
         notification_for: blog.author,
         user: user_id,
+        like: savedLike._id,
+      });
+      await notification.save();
+
+      return res.status(200).json({ liked_by_user: true });
+    } else {
+      // User is unliking the post
+      const likeToRemove = await Like.findOneAndDelete({
+        user: user_id,
+        post: _id,
       });
 
-      like.save().then((notifications) => {
-        return res.status(200).json({ liked_by_user: true });
-      });
-    } else {
-      Notifications.findOneAndDelete({ user: user_id, blog: _id, type: "like" })
-        .then((data) => {
-          return res.status(200).json({ liked_by_user: false });
-        })
-        .catch((err) => {
-          return res.status(500).json({ error: err.message });
+      if (likeToRemove) {
+        // Remove the like's _id from the blog's likes array
+        blog.likes = blog.likes.filter(
+          (likeId) => !likeId.equals(likeToRemove._id) // Filter out the like
+        );
+        await blog.save();
+
+        // Delete the corresponding notification
+        await Notifications.findOneAndDelete({
+          user: user_id,
+          blog: _id,
+          type: "like",
         });
+      }
+
+      return res.status(200).json({ liked_by_user: false });
     }
-  });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 router.post("/isliked-by-user", verifyJWT, (req, res) => {
@@ -198,6 +234,52 @@ router.post("/isliked-by-user", verifyJWT, (req, res) => {
     .catch((err) => {
       return res.status(500).json({ error: err.message });
     });
+});
+
+router.post("/dislike-blog", verifyJWT, async (req, res) => {
+  try {
+    const user_id = req.user; // Assuming req.user contains the authenticated user's id
+    const { _id } = req.body;
+
+    // Decrement the total likes count in the blog
+    const blog = await Blog.findOneAndUpdate(
+      { _id },
+      { $inc: { "activity.total_likes": -1 } },
+      { new: true }
+    );
+
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found" });
+    }
+
+    // Remove the like from the Like model
+    const deletedLike = await Like.findOneAndDelete({
+      user: user_id,
+      post: _id,
+    });
+
+    if (deletedLike) {
+      // Remove the like's _id from the blog's likes array
+      blog.likes = blog.likes.filter(
+        (likeId) => !likeId.equals(deletedLike._id)
+      );
+      await blog.save();
+
+      // Remove the notification for the like
+      await Notifications.findOneAndDelete({
+        user: user_id,
+        blog: _id,
+        type: "like",
+      });
+
+      return res.status(200).json({ liked_by_user: false });
+    } else {
+      return res.status(404).json({ error: "Like not found" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 router.post("/add-comment", verifyJWT, (req, res) => {

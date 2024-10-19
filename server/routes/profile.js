@@ -1,6 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+const Post = require("../models/blog");
+const Notification = require("../models/notifaications");
+const Like = require("../models/like");
+const Comment = require("../models/comment");
+const Report = require("../models/report");
 const bcrypt = require("bcrypt");
 
 // Route URL to get all users
@@ -81,12 +86,20 @@ router.delete("/edit-profile/delete/:id", async function (req, res, next) {
     if (!isMatch) {
       return res.status(400).json({ error: "Incorrect password" });
     }
-
+    await Post.deleteMany({ author: req.params.id });
+    await Notification.deleteMany({ user: req.params.id });
+    await Like.deleteMany({ user: req.params.id });
+    await Comment.deleteMany({ blog_author: req.params.id });
+    await Report.deleteMany({
+      $or: [{ user: req.params.id }, { reportedUser: req.params.id }],
+    });
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted successfully" });
+    console.log("Deleted successfully!");
+
+    res.json({ message: "User and related data deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error deleting user" });
+    res.status(500).json({ error: "Error deleting user and related data" });
   }
 });
 

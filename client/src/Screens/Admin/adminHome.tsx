@@ -50,7 +50,6 @@ interface Report {
       _id: string;
       fullname: string;
       banner: string;
-      profile_picture: string;
     };
     content: [
       {
@@ -124,6 +123,7 @@ const AdminHome: React.FC = () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/report`);
         setReports(response.data);
+        console.log("respone.data", response.data);
       } catch (error) {
         console.error("Error fetching reports:", error);
       }
@@ -301,8 +301,7 @@ const AdminHome: React.FC = () => {
   // สถานะเพื่อจัดการการ hover สำหรับ user-all และ view-all
   const [isUserHovered, setIsUserHovered] = useState(false);
   const [isViewHovered, setIsViewHovered] = useState(false);
-
-  const monthsUser = [
+  const [monthsUser, setMonthsUser] = useState([
     { month: "January", joinAt: 0 },
     { month: "February", joinAt: 0 },
     { month: "March", joinAt: 0 },
@@ -315,9 +314,9 @@ const AdminHome: React.FC = () => {
     { month: "October", joinAt: 0 },
     { month: "November", joinAt: 0 },
     { month: "December", joinAt: 0 },
-  ];
+  ]);
 
-  const monthsPost = [
+  const [monthsPost, setMonthsPost] = useState([
     { month: "January", publishedAt: 0 },
     { month: "February", publishedAt: 0 },
     { month: "March", publishedAt: 0 },
@@ -330,19 +329,31 @@ const AdminHome: React.FC = () => {
     { month: "October", publishedAt: 0 },
     { month: "November", publishedAt: 0 },
     { month: "December", publishedAt: 0 },
-  ];
+  ]);
 
-  getUser?.forEach((user: any) => {
-    const date = new Date(user.joinedAt);
-    const monthIndex = date.getUTCMonth();
-    monthsUser[monthIndex].joinAt += 1;
-  });
+  useEffect(() => {
+    if (getUser && getUser.length > 0) {
+      const updatedMonthsUser = [...monthsUser];
+      getUser.forEach((user: any) => {
+        const date = new Date(user.joinedAt);
+        const monthIndex = date.getUTCMonth(); // 0 for January, 11 for December
+        updatedMonthsUser[monthIndex].joinAt += 1;
+      });
+      setMonthsUser(updatedMonthsUser);
+    }
+  }, [getUser]);
 
-  getBlog?.forEach((blog: any) => {
-    const publishedDate = new Date(blog.publishedAt);
-    const monthIndex = publishedDate.getMonth();
-    monthsPost[monthIndex].publishedAt += 1;
-  });
+  useEffect(() => {
+    if (getBlog && getBlog.length > 0) {
+      const updatedMonthsPost = [...monthsPost];
+      getBlog.forEach((blog: any) => {
+        const publishedDate = new Date(blog.publishedAt);
+        const monthIndex = publishedDate.getUTCMonth(); // 0 for January, 11 for December
+        updatedMonthsPost[monthIndex].publishedAt += 1;
+      });
+      setMonthsPost(updatedMonthsPost);
+    }
+  }, [getBlog]);
 
   // ข้อมูลตัวอย่างสำหรับกราฟ
   const userData = {
@@ -823,7 +834,11 @@ const AdminHome: React.FC = () => {
                         {reports.length > 0 ? (
                           reports.map((report) => (
                             <tr key={report._id}>
-                              <td>{report.reportedBy.fullname}</td>
+                              <td>
+                                {report.reportedBy
+                                  ? report.reportedBy.fullname
+                                  : ""}
+                              </td>
                               <td>
                                 {new Date(
                                   report.createdAt
@@ -891,7 +906,11 @@ const AdminHome: React.FC = () => {
                           reports.map((report) =>
                             !report.verified ? (
                               <tr key={report._id}>
-                                <td>{report.reportedBy.fullname}</td>
+                                <td>
+                                  {report.reportedBy
+                                    ? report.reportedBy.fullname
+                                    : ""}
+                                </td>
                                 <td>
                                   {new Date(
                                     report.createdAt
@@ -998,7 +1017,11 @@ const AdminHome: React.FC = () => {
                                 report.verified &&
                                 report.status === "Verified" ? (
                                   <tr key={report._id}>
-                                    <td>{report.reportedBy.fullname}</td>
+                                    <td>
+                                      {report.reportedBy
+                                        ? report.reportedBy.fullname
+                                        : ""}
+                                    </td>
                                     <td>
                                       {new Date(
                                         report.createdAt
@@ -1052,7 +1075,11 @@ const AdminHome: React.FC = () => {
                             reports.map((report) =>
                               report.status === "Decline" ? (
                                 <tr key={report._id}>
-                                  <td>{report.reportedBy.fullname}</td>
+                                  <td>
+                                    {report.reportedBy
+                                      ? report.reportedBy.fullname
+                                      : ""}
+                                  </td>
                                   <td>
                                     {new Date(
                                       report.createdAt

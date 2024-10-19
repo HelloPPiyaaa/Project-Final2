@@ -41,9 +41,7 @@ router.post("/", async (req, res) => {
         const notification = new Notification({
           user: you._id,
           type: "follow",
-          message: `${me.firstname} ${
-            me.lastname || ""
-          } started following you.`,
+          message: `${me.fullname} started following you.`,
           entity: me._id,
           entityModel: "User",
         });
@@ -67,10 +65,14 @@ router.post("/", async (req, res) => {
 // Route URL to get user data by ID
 router.get("/:id", async function (req, res, next) {
   try {
-    const user = await User.findById(req.params.id).lean();
+    const user = await User.findById(req.params.id)
+      .lean()
+      .populate("followers", "firstname fullname")
+      .populate("following", "firstname fullname");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("user", user);
     res.json(user);
   } catch (err) {
     console.error(err);
@@ -81,8 +83,8 @@ router.get("/:id", async function (req, res, next) {
 router.get("/users/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .populate("followers", "firstname lastname")
-      .populate("following", "firstname lastname");
+      .populate("followers", "firstname fullname")
+      .populate("following", "firstname fullname");
     if (!user) return res.status(404).send("User not found");
     res.json(user);
   } catch (error) {

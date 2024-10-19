@@ -49,6 +49,7 @@ import AccountPreferences from "./Screens/AccountPreferences";
 interface UserContextType {
   userAuth: {
     access_token: string | null;
+    _id?: string;
     username?: string;
     fullname?: string;
     profile_picture?: string;

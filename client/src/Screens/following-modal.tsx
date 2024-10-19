@@ -1,17 +1,18 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchFollow, fetchProfile } from "../api/follow";
 import { Button, Modal } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 export function FollowingModal({ userProfile }: any) {
   const [smShow, setSmShow] = useState(false);
   const [myUser, setMyUser] = useState<any>(null);
   const [isFollowingModal, setIsFollowingModal] = useState<boolean>(false);
-  const [profileDataArray, setProfileDataArray] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>([]);
 
   const handleButtonClick = async () => {
     setSmShow(true);
-    const me = localStorage.getItem("userId");
+    const me = sessionStorage.getItem("userId");
+    console.log("me", me);
     if (me) {
       try {
         const profileData = await fetchProfile(me);
@@ -28,7 +29,7 @@ export function FollowingModal({ userProfile }: any) {
     const newData: string[] = [];
     userProfile?.following?.forEach((e: any) => {
       const isFollowing = myUser?.following?.some(
-        (follower: any) => follower === e
+        (follower: any) => follower._id === e
       );
       if (isFollowing) {
         newData.push(e);
@@ -37,8 +38,15 @@ export function FollowingModal({ userProfile }: any) {
     return newData;
   }, [userProfile, myUser, isFollowingModal]);
 
+  useEffect(() => {
+    console.log("userProfile", userProfile);
+    console.log("currentUser", currentUser);
+    console.log("myUser", myUser);
+    console.log("CheckFollowing", CheckFollowing);
+  }, [currentUser, userProfile, myUser, CheckFollowing]);
+
   const handleFollow = useCallback(async (you: string) => {
-    const API_BASE_URL = "http://localhost:3001/follow";
+    const API_BASE_URL = "http://localhost:3001/follows";
     try {
       const response = await fetch(API_BASE_URL, {
         method: "POST",
@@ -46,10 +54,12 @@ export function FollowingModal({ userProfile }: any) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          me: localStorage.getItem("userId"),
+          me: sessionStorage.getItem("userId"),
           you: you,
         }),
       });
+      console.log("response", response);
+
       if (!response.ok) {
         const statusText = response.statusText || "Unknown Error";
         throw new Error(
@@ -58,7 +68,9 @@ export function FollowingModal({ userProfile }: any) {
       }
       const followerData = await response.json();
       setIsFollowingModal(followerData.newFollow.if_followed);
-      const updatedProfile = await fetchProfile(localStorage.getItem("userId"));
+      const updatedProfile = await fetchProfile(
+        sessionStorage.getItem("userId")
+      );
       setMyUser(updatedProfile);
     } catch (error) {
       console.error("Error:", (error as Error).message);
@@ -66,7 +78,7 @@ export function FollowingModal({ userProfile }: any) {
   }, []);
 
   const handleUnfollow = useCallback(async (you: string) => {
-    const API_BASE_URL_DELETE = "http://localhost:3001/follow/delete";
+    const API_BASE_URL_DELETE = "http://localhost:3001/follows/delete";
     try {
       const response = await fetch(API_BASE_URL_DELETE, {
         method: "DELETE",
@@ -74,7 +86,7 @@ export function FollowingModal({ userProfile }: any) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          me: localStorage.getItem("userId"),
+          me: sessionStorage.getItem("userId"),
           you: you,
         }),
       });
@@ -86,7 +98,9 @@ export function FollowingModal({ userProfile }: any) {
       }
       const res = await response.json();
       setIsFollowingModal(false);
-      const updatedProfile = await fetchProfile(localStorage.getItem("userId"));
+      const updatedProfile = await fetchProfile(
+        sessionStorage.getItem("userId")
+      );
       setMyUser(updatedProfile);
     } catch (error) {
       console.error("Error:", (error as Error).message);
@@ -100,7 +114,7 @@ export function FollowingModal({ userProfile }: any) {
         className="me-2"
         style={{ backgroundColor: "white", color: "black", border: "none" }}
       >
-        <h5 className="m-0">{`${userProfile?.following?.length} following`}</h5>
+        <p className="m-0">{`${userProfile?.following?.length} following`}</p>
       </Button>
       <Modal
         size="sm"
@@ -113,64 +127,59 @@ export function FollowingModal({ userProfile }: any) {
           <Modal.Title id="example-modal-sizes-title-sm">following</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {currentUser?.following?.map((c: any) => (
-            <div
-              key={c + "s"}
-              style={{
-                display: "flex",
-                gap: "1rem",
-                padding: "0.5rem",
-                alignItems: "center",
-              }}
-            >
-              <a
-                href={`/profile/${c._id}`}
+          {currentUser?.following?.map((c: any) => {
+            console.log("c", c);
+            return (
+              <div
+                key={c + "s"}
                 style={{
-                  flex: 1,
-                  textDecoration: "none",
+                  display: "flex",
+                  gap: "1rem",
+                  padding: "0.5rem",
+                  alignItems: "center",
                 }}
               >
-                <p
+                <Link
+                  to={`/user/${c._id}`}
                   style={{
-                    padding: "0 10px 0 10px",
-                    margin: 0,
-                    color: "black",
+                    flex: 1,
+                    textDecoration: "none",
                   }}
                 >
-                  {c.firstname}
-                </p>
-              </a>
-              <div className="d-flex justify-content-end">
-                {localStorage.getItem("userId") === c._id ? (
-                  <Button disabled>you</Button>
-                ) : CheckFollowing?.some(
-                    (follower: any) => follower === c._id
-                  ) ? (
-                  <Button
-                    onClick={() => handleUnfollow(c)}
-                    style={{
-                      backgroundColor: "gray",
-                      color: "white",
-                      border: "none",
-                    }}
-                  >
-                    followed
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => handleFollow(c)}
-                    style={{
-                      backgroundColor: "black",
-                      color: "white",
-                      border: "none",
-                    }}
-                  >
-                    follow
-                  </Button>
-                )}
+                  <p>{c.fullname}</p>
+                </Link>
+                <div className="d-flex justify-content-end">
+                  {sessionStorage.getItem("userId") === c._id ? (
+                    <Button disabled>you</Button>
+                  ) : CheckFollowing?.some(
+                      (follower: any) => follower === c._id
+                    ) ? (
+                    <Button
+                      onClick={() => handleUnfollow(c._id)}
+                      style={{
+                        backgroundColor: "gray",
+                        color: "white",
+                        border: "none",
+                      }}
+                    >
+                      followed
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleFollow(c._id)}
+                      style={{
+                        backgroundColor: "black",
+                        color: "white",
+                        border: "none",
+                      }}
+                    >
+                      follow
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </Modal.Body>
       </Modal>
     </>

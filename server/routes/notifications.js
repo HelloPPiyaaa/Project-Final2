@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const Notification = require("../models/notification");
 
-// Fetch notifications for a user
 router.get("/", async (req, res) => {
   const { userId } = req.query;
 
@@ -11,11 +10,18 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    const notifications = await Notification.find({ user: userId })
-      .populate("user", "username email firstname lastname profile_picture")
-      .sort({ updatedAt: -1 });
+    // Filter notifications by notification_for field
+    const userNotifications = await Notification.find()
+      .populate("user")
+      .populate("notification_for");
 
-    res.json(notifications);
+    if (!userNotifications.length) {
+      return res
+        .status(404)
+        .json({ message: "No notifications found for this user" });
+    }
+
+    res.json(userNotifications);
   } catch (error) {
     res
       .status(500)
