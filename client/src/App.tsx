@@ -99,9 +99,10 @@ function App() {
               element={<UserAuthForm type="สมัครสมาชิก" />}
             />
             <Route path="/" element={<HomePage />} />
+            <Route path="/user/:id" element={<ProfilePage />} />
             <Route path="/search/:query" element={<SearchPage />} />
             <Route path="*" element={<PageNotFound />} />
-            <Route path="/user/:id" element={<ProfilePage />} />
+          
             <Route path="/blog/:blog_id" element={<BlogPage />}></Route>
 
             <Route path="/test" element={<TestPage />} />
