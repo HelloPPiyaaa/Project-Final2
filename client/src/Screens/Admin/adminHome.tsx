@@ -549,7 +549,6 @@ const AdminHome: React.FC = () => {
             </div>
           </div>
         )}
-
         {selectedCate === "dashboard" && (
           <div className="right">
             <div className="top">
