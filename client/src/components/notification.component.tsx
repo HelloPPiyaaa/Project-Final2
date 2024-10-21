@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../App";
 import axios from "axios";
-import "../misc/dropdown-nav.css"; // Assuming this file includes custom styles.
+import "../misc/dropdown-nav.css";
 
 const UserNotificationPanel = () => {
   const {
@@ -15,7 +15,6 @@ const UserNotificationPanel = () => {
   const navigate = useNavigate();
   const API_BASE_URL = "http://localhost:3001";
 
-  // Fetch notifications on component mount and every 5 seconds.
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -38,7 +37,6 @@ const UserNotificationPanel = () => {
     return () => clearInterval(intervalId);
   }, [userId]);
 
-  // Handle the notification click (mark as read and navigate).
   const handleNotificationClick = async (
     e: React.MouseEvent<HTMLDivElement>,
     type: string,
@@ -61,7 +59,6 @@ const UserNotificationPanel = () => {
               : notification
           )
         );
-        // Navigate to the relevant page based on notification type.
         navigate(type === "follow" ? `/user/${userId}` : `/blog/${entityId}`);
       } else {
         console.error("Failed to mark notification as read:", response.data);

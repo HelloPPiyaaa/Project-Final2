@@ -174,12 +174,15 @@ router.post("/like-blog", verifyJWT, async (req, res) => {
     const user_id = req.user;
     const { _id, islikedByUser } = req.body;
     const incrementVal = !islikedByUser ? 1 : -1;
-    const blog = await Blog.findOneAndUpdate(
-      { _id },
-      { $inc: { "activity.total_likes": incrementVal } }
+
+    const post = await Blog.findByIdAndUpdate(
+      _id,
+      { $inc: { "activity.total_likes": incrementVal } },
+      { new: true }
     );
-    if (!blog) {
-      return res.status(404).json({ error: "Blog not found" });
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
     }
 
     if (!islikedByUser) {
@@ -188,29 +191,36 @@ router.post("/like-blog", verifyJWT, async (req, res) => {
         post: _id,
       });
       const savedLike = await newLike.save();
-      blog.likes.push(savedLike._id);
-      await blog.save();
+
+      post.likes.push(savedLike._id);
+      await post.save();
+
       const notification = new Notifications({
         type: "like",
         blog: _id,
-        notification_for: blog.author,
+        notification_for: post.author,
         user: user_id,
         like: savedLike._id,
+        entity: post.author,
+        entityModel: "User",
       });
       await notification.save();
 
       return res.status(200).json({ liked_by_user: true });
     } else {
+      // Remove like
       const likeToRemove = await Like.findOneAndDelete({
         user: user_id,
         post: _id,
       });
 
       if (likeToRemove) {
-        blog.likes = blog.likes.filter(
-          (likeId) => !likeId.equals(likeToRemove._id) // Filter out the like
+        post.likes = post.likes.filter(
+          (likeId) => !likeId.equals(likeToRemove._id)
         );
-        await blog.save();
+        await post.save();
+
+        // Delete the associated like notification
         await Notifications.findOneAndDelete({
           user: user_id,
           blog: _id,
