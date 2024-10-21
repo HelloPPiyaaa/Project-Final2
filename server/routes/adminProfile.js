@@ -95,13 +95,6 @@ router.get("/users", async (req, res) => {
   try {
     const now = new Date();
 
-    // for fetch data last 24 Hour
-    // const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    // const userCount = await User.countDocuments({
-    //   createdAt: { $gte: last24Hours },
-    // });
-
-    // for fetch all
     const userCount = await User.countDocuments();
     return res.json(userCount);
   } catch (error) {
@@ -112,8 +105,21 @@ router.get("/users", async (req, res) => {
 
 router.get("/viewer", async (req, res) => {
   try {
-    const now = new Date();
     const posts = await Post.find();
+    res.json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/blogs/:id", async (req, res) => {
+  const { id: user_id } = req.params;
+  try {
+    const posts = await Post.find({ author: user_id });
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({ message: "No posts found for this user" });
+    }
     res.json(posts);
   } catch (error) {
     console.error(error);
