@@ -182,52 +182,65 @@ const ProfilePage = () => {
   };
 
   const handleFollow = useCallback(async () => {
-    const API_BASE_URL = "http://localhost:3001/follow";
+    const API_BASE_URL = "http://localhost:3001/follow"; // URL ของ API ที่ใช้สำหรับการ follow ผู้ใช้
     try {
+      // ส่งคำขอ POST ไปยัง API เพื่อติดตามผู้ใช้
       const response = await fetch(API_BASE_URL, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json", // กำหนด Content-Type เป็น JSON
         },
+        // ส่งข้อมูลผู้ใช้ปัจจุบัน (me) และผู้ใช้ที่ต้องการติดตาม (you) ไปยัง API
         body: JSON.stringify({ me: sessionStorage.getItem("userId"), you: id }),
       });
 
+      // ถ้าการตอบกลับจาก API ไม่สำเร็จ ให้โยน error
       if (!response.ok) {
         throw new Error(
-          `Server returned ${response.status} ${response.statusText} for ${API_BASE_URL}`
+          `Server returned ${response.status} ${response.statusText} for ${API_BASE_URL}` // แสดงข้อความ error ที่เกิดขึ้นจาก server
         );
       }
 
+      // แปลงข้อมูลที่ได้จาก API เป็น JSON และอัพเดตสถานะการติดตาม
       const followerData = await response.json();
-      setUserProfile(followerData.newFollow);
-      setIsFollowing(followerData.newFollow.if_followed);
+      setUserProfile(followerData.newFollow); // อัพเดตข้อมูลโปรไฟล์ผู้ใช้ด้วยข้อมูลที่ได้รับจาก API
+      setIsFollowing(followerData.newFollow.if_followed); // ตั้งค่าสถานะการติดตามใหม่
     } catch (error: any) {
+      // ถ้ามี error เกิดขึ้นในการดำเนินการ จะแสดงข้อความ error ใน console
       console.error("Error:", error.message);
     }
-  }, [id, isFollowing]);
+  }, [id, isFollowing]); // การใช้ useCallback โดยผูกกับ id และ isFollowing เพื่อเพิ่มประสิทธิภาพ
+
 
   const handleUnfollow = useCallback(async () => {
     try {
+      // ส่งคำขอ DELETE ไปยัง API เพื่อลบการติดตามผู้ใช้
       const response = await fetch(`${API_BASE_URL}/follow/delete`, {
         method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json", // กำหนด Content-Type เป็น JSON
         },
+        // ส่งข้อมูลผู้ใช้ปัจจุบัน (me) และผู้ใช้ที่ต้องการยกเลิกการติดตาม (you) ไปยัง API
         body: JSON.stringify({ me: sessionStorage.getItem("userId"), you: id }),
       });
+
+      // ถ้าการตอบกลับจาก API ไม่สำเร็จ ให้โยน error
       if (!response.ok) {
-        const statusText = response.statusText || "Unknown Error";
+        const statusText = response.statusText || "Unknown Error"; // กรณีที่ไม่มีข้อความ error จากเซิร์ฟเวอร์
         throw new Error(
-          `Server returned ${response.status} ${statusText} for ${API_BASE_URL}/follow/delete`
+          `Server returned ${response.status} ${statusText} for ${API_BASE_URL}/follow/delete` // แสดงข้อความ error ที่เกิดขึ้นจากเซิร์ฟเวอร์
         );
       }
+
+      // แปลงข้อมูลที่ได้จาก API เป็น JSON และอัพเดตสถานะการยกเลิกการติดตาม
       const res = await response.json();
-      setUserProfile(res.unFollow);
-      setIsFollowing(false);
+      setUserProfile(res.unFollow); // อัพเดตโปรไฟล์ผู้ใช้ด้วยข้อมูลที่ได้รับจาก API หลังจากยกเลิกการติดตาม
+      setIsFollowing(false); // ตั้งค่าสถานะการติดตามเป็น false
     } catch (error) {
+      // ถ้ามี error เกิดขึ้นในการดำเนินการ จะแสดงข้อความ error ใน console
       console.error("Error:", (error as Error).message);
     }
-  }, [id, isFollowing]);
+  }, [id, isFollowing]); // การใช้ useCallback โดยผูกกับ id และ isFollowing เพื่อเพิ่มประสิทธิภาพ
 
   return (
     <AnimationWrapper>

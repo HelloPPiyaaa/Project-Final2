@@ -115,7 +115,7 @@ export function FollowingModal({ userProfile }: any) {
         aria-labelledby="example-modal-sizes-title-sm"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="example-modal-sizes-title-sm">following</Modal.Title>
+          <Modal.Title id="example-modal-sizes-title-sm">กำลังติดตาม</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {currentUser?.following?.map((c: any) => {
@@ -152,7 +152,7 @@ export function FollowingModal({ userProfile }: any) {
                         border: "none",
                       }}
                     >
-                      followed
+                      ติดตามแล้ว
                     </Button>
                   ) : (
                     <Button
@@ -163,7 +163,7 @@ export function FollowingModal({ userProfile }: any) {
                         border: "none",
                       }}
                     >
-                      follow
+                      ติดตาม
                     </Button>
                   )}
                 </div>

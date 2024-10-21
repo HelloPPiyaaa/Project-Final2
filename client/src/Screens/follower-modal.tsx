@@ -114,7 +114,7 @@ export function FollowerModal({ userProfile }: any) {
         aria-labelledby="example-modal-sizes-title-sm"
       >
         <Modal.Header closeButton>
-          <Modal.Title id="example-modal-sizes-title-sm">following</Modal.Title>
+          <Modal.Title id="example-modal-sizes-title-sm">กำลังติดตาม</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {currentUser?.followers?.map((c: any) => (
@@ -154,7 +154,7 @@ export function FollowerModal({ userProfile }: any) {
                     }}
                     disabled
                   >
-                    you
+                    คุณ
                   </Button>
                 ) : CheckFollower?.some(
                     (follower: any) => follower === c._id
@@ -167,7 +167,7 @@ export function FollowerModal({ userProfile }: any) {
                     }}
                     onClick={() => handleUnfollow(c)}
                   >
-                    followed
+                    ติดตามแล้ว
                   </Button>
                 ) : (
                   <Button
@@ -178,7 +178,7 @@ export function FollowerModal({ userProfile }: any) {
                     }}
                     onClick={() => handleFollow(c)}
                   >
-                    follow
+                    ติดตาม
                   </Button>
                 )}
               </div>

@@ -33,9 +33,9 @@ const UserNavigationPanel = () => {
           สถิติการเข้าชม
         </Link>
         <Link to={`/account/preference/${userId}`} className="link pl-8">
-          Account Preference
+          ตั้งค่าบัญชีผู้ใช้
         </Link>
-        <Link to={`/settings/edit-profile`} className="link pl-8">
+        <Link to={`/helpcentre`} className="link pl-8">
           ช่วยเหลือ
         </Link>
 
