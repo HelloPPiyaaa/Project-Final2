@@ -90,12 +90,24 @@ const isAdmin = async (req, res, next) => {
 //   }
 // });
 
-// waiting for add isAdmin function //
 router.get("/users", async (req, res) => {
   try {
-    const now = new Date();
-
     const userCount = await User.countDocuments();
+    return res.json(userCount);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/users/within24hour", async (req, res) => {
+  try {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const userCount = await User.countDocuments({
+      joinedAt: { $gte: twentyFourHoursAgo },
+    });
     return res.json(userCount);
   } catch (error) {
     console.error(error);
@@ -106,6 +118,21 @@ router.get("/users", async (req, res) => {
 router.get("/viewer", async (req, res) => {
   try {
     const posts = await Post.find();
+    res.json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/blogs/within24hour", async (req, res) => {
+  try {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const posts = await Post.find({
+      publishedAt: { $gte: twentyFourHoursAgo },
+    });
+
     res.json(posts);
   } catch (error) {
     console.error(error);

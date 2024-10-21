@@ -82,18 +82,19 @@ export const fetchUsersAPI = async () => {
     return;
   }
 
-  const response = await fetch("http://localhost:3001/admin/users", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
+  const response = await fetch(
+    "http://localhost:3001/admin/users/within24hour",
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to fetch users");
   }
-
   const data = await response.json();
   return data;
 };
@@ -112,6 +113,31 @@ export const fetchAllUser = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
+  if (!response.ok) {
+    throw new Error("Failed to fetch users");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const fetchAllBlog = async () => {
+  const token = sessionStorage.getItem("userId");
+  if (!token) {
+    console.error("No token found, redirecting to login...");
+    return;
+  }
+
+  const response = await fetch(
+    "http://localhost:3001/admin/blogs/within24hour",
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to fetch users");
   }

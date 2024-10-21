@@ -19,6 +19,20 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/within24hour", async (req, res) => {
+  try {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const users = await User.find({
+      joinedAt: { $gte: twentyFourHoursAgo },
+    }).lean();
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error fetching user data" });
+  }
+});
+
 // Route URL to get user data by ID
 router.get("/:id", async function (req, res, next) {
   try {

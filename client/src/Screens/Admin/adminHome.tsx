@@ -10,6 +10,7 @@ import { MdManageAccounts, MdCategory, MdOutlinePostAdd } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import {
   fetchAdminProfile,
+  fetchAllBlog,
   fetchAllUser,
   fetchUser,
   fetchUsersAPI,
@@ -83,24 +84,16 @@ export interface Report {
 const AdminHome: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const API_BASE_URL = "http://localhost:3001";
-
-  const [adminProfile, setAdminProfile] = useState<any>(true);
   const adminUsername = sessionStorage.getItem("userId");
 
+  const [adminProfile, setAdminProfile] = useState<any>(true);
   const [userCounter, setUserCounter] = useState<number>(0);
   const [postCounter, setPostCounter] = useState<number>(0);
   const [totalViews, setTotalViews] = useState<number>(0);
-  const [postMonthly, setPostMonthly] = useState<any>();
   const [getUser, setGetUser] = useState<any>();
   const [getBlog, setGetBlog] = useState<any>();
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [tel, setTel] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
   const [selectedCate, setSelectedCate] = useState<string>("dashboard");
-
   const [selectedBlog, setSelectedBlog] = useState<string>("blog-all");
   const [selectedApprove, setSelectedApprove] =
     useState<string>("blog-success");
@@ -108,8 +101,8 @@ const AdminHome: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-
   const [users, setUsers] = useState<any>([]);
+  const [allUsers, setAllUsers] = useState<any>([]);
 
   const handleShowModal = (report: any) => {
     setSelectedReport(report);
@@ -130,15 +123,18 @@ const AdminHome: React.FC = () => {
         console.error("Error fetching reports:", error);
       }
     };
-
     fetchReports();
   }, []);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/profile`);
-        setUsers(response.data);
+        const responseUser = await axios.get(
+          `${API_BASE_URL}/profile/within24hour`
+        );
+        const responseAllUser = await axios.get(`${API_BASE_URL}/profile`);
+        setUsers(responseUser.data);
+        setAllUsers(responseAllUser.data);
       } catch (error) {
         console.error("Error fetching reports:", error);
       }
@@ -222,18 +218,12 @@ const AdminHome: React.FC = () => {
       try {
         if (id) {
           const profileData = await fetchAdminProfile(id);
-          setUsername(profileData.username);
           setAdminProfile(profileData);
-          setEmail(profileData.email);
-          setTel(profileData.tel);
-          setFirstname(profileData.firstname);
-          setLastname(profileData.lastname);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
     };
-
     fetchData();
   }, [id]);
 
@@ -241,22 +231,18 @@ const AdminHome: React.FC = () => {
     const fetchData = async () => {
       try {
         const userCountData = await fetchUsersAPI();
-        const AllPost = await fetchAllUser();
+        const AllPost = await fetchAllBlog();
+        const blog = await fetchAllUser();
         const User = await fetchUser();
-
-        setGetUser(User);
-
         const totalViews = AllPost.reduce(
           (acc: any, post: any) => acc + post.activity.total_reads,
           0
         );
-
+        setGetUser(User);
         setGetBlog(AllPost);
-
         setUserCounter(userCountData);
         setPostCounter(AllPost.length);
         setTotalViews(totalViews);
-        setPostMonthly(convertPostsToGrowthData(AllPost));
       } catch (error) {
         console.error("Error fetching user count:", error);
       }
@@ -1237,7 +1223,9 @@ const AdminHome: React.FC = () => {
             </div>
           </div>
         )}
-        {selectedCate === "manage-user" && <ManageUser users={users} />}
+        {selectedCate === "manage-user" && (
+          <ManageUser users={users} allUsers={allUsers} />
+        )}
         {selectedCate === "manage-user" && (
           <div className="right">
             <div className="top">

@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PiUsersThreeFill } from "react-icons/pi";
 import { LuView } from "react-icons/lu";
-import {
-  fetchAdminProfile,
-  fetchUsersAPI,
-  deleteUserAPI,
-  updateUserAPI,
-} from "../../api/adminProfile";
+import { updateUserAPI } from "../../api/adminProfile";
 import { useNavigate, useParams } from "react-router-dom";
 import GenderChart from "./Chart/GenderChart";
 import { Button, Modal, Form } from "react-bootstrap";
@@ -17,9 +12,10 @@ import DeleteAdminAccountModal from "./adminDelete-account";
 
 interface UserProps {
   users: any[];
+  allUsers: any[];
 }
 
-const ManageUser: React.FC<UserProps> = ({ users }) => {
+const ManageUser: React.FC<UserProps> = ({ users, allUsers }) => {
   const { id } = useParams<{ id: string }>();
   const [email, setEmail] = useState("");
   const [fullname, setFullname] = useState("");
@@ -108,10 +104,9 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
             <div className="middle">
               <div className="left">
                 <h3>ผู้ใช้ทั้งหมด</h3>
-                <h1>{users.length}</h1>
+                <h1>{allUsers.length}</h1>
               </div>
             </div>
-            <small className="text-muted1">Last 24 Hour</small>
           </div>
 
           <div className="view-all">
@@ -119,7 +114,7 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
             <div className="middle">
               <div className="left">
                 <h3>ผู้ใช้ใหม่</h3>
-                <h1>-</h1>
+                <h1>{users.length}</h1>
               </div>
             </div>
             <small className="text-muted1">Last 24 Hour</small>
@@ -155,7 +150,7 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.length > 0 ? (
+                  {allUsers.length > 0 ? (
                     fetchUserData.length > 0 ? (
                       fetchUserData.map((u: any) => (
                         <tr key={u._id}>
@@ -194,7 +189,7 @@ const ManageUser: React.FC<UserProps> = ({ users }) => {
                         </tr>
                       ))
                     ) : (
-                      users.map((u: any) => (
+                      allUsers.map((u: any) => (
                         <tr key={u._id}>
                           <td>{new Date(u.joinedAt).toLocaleDateString()}</td>
                           <td>{u.fullname}</td>
