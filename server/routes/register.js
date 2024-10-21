@@ -14,6 +14,7 @@ const formDatatoSend = (user) => {
   const access_token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
   return {
     access_token,
+    userId: user._id,
     profile_picture: user.profile_picture,
     username: user.username,
     fullname: user.fullname,
