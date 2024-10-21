@@ -545,7 +545,7 @@ const AdminHome: React.FC = () => {
             </div>
 
             <div className="recent-order">
-              <GrowthChart data={monthsPost} />
+              <GrowthChart data={getBlog} />
             </div>
           </div>
         )}
