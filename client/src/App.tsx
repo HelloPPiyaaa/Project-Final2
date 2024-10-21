@@ -102,7 +102,7 @@ function App() {
             <Route path="/user/:id" element={<ProfilePage />} />
             <Route path="/search/:query" element={<SearchPage />} />
             <Route path="*" element={<PageNotFound />} />
-          
+
             <Route path="/blog/:blog_id" element={<BlogPage />}></Route>
 
             <Route path="/test" element={<TestPage />} />
