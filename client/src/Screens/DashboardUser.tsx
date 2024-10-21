@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Line } from "react-chartjs-2"; // Import the Line chart component
-import { Card, Row, Col } from "react-bootstrap"; // Import Bootstrap components
+import { Line } from "react-chartjs-2";
+import { Card, Row, Col } from "react-bootstrap";
 import { IoHeart } from "react-icons/io5";
 import { FaCommentDots } from "react-icons/fa";
-import { fetchAllUser } from "../api/adminProfile";
+import { fetchBlogById } from "../api/adminProfile";
 
 export default function DashboardUser() {
+  const userId = sessionStorage.getItem("userId");
   const [timeRange, setTimeRange] = useState("Month");
   const [getBlog, setGetBlog] = useState<any[]>([]);
   const [totalLikes, setTotalLikes] = useState(0);
@@ -15,7 +16,7 @@ export default function DashboardUser() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const AllPost = await fetchAllUser();
+        const AllPost = await fetchBlogById(userId);
         setGetBlog(AllPost);
       } catch (error) {
         console.error("Error fetching user count:", error);
@@ -49,11 +50,11 @@ export default function DashboardUser() {
     datasets: [
       {
         label: "จำนวนผู้เข้าชม",
-        data: [15, 30, 8, 20, 12], // Update with actual data for the month
+        data: [15, 30, 8, 20, 12],
         backgroundColor: "rgba(253, 70, 74, 0.6)",
-        borderColor: "rgba(253, 70, 74, 1)", // Line color
+        borderColor: "rgba(253, 70, 74, 1)",
         tension: 0.5,
-        fill: true, // Fill the area under the line
+        fill: true,
       },
     ],
   };
@@ -63,11 +64,11 @@ export default function DashboardUser() {
     datasets: [
       {
         label: "จำนวนผู้เข้าชม",
-        data: [15, 25, 8, 20, 18], // Update with actual data for the year
+        data: [15, 25, 8, 20, 18],
         backgroundColor: "rgba(253, 70, 74, 0.6)",
-        borderColor: "rgba(253, 70, 74, 1)", // Line color
+        borderColor: "rgba(253, 70, 74, 1)",
         tension: 0.5,
-        fill: true, // Fill the area under the line
+        fill: true,
       },
     ],
   };
@@ -121,13 +122,13 @@ export default function DashboardUser() {
             scales: {
               x: {
                 grid: {
-                  display: false, // Turn off x-axis grid
+                  display: false,
                 },
               },
               y: {
                 beginAtZero: true,
                 grid: {
-                  display: false, // Turn off y-axis grid
+                  display: false,
                 },
               },
             },

@@ -139,7 +139,6 @@ const AdminHome: React.FC = () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/profile`);
         setUsers(response.data);
-        console.log("respone.data", response.data);
       } catch (error) {
         console.error("Error fetching reports:", error);
       }
@@ -343,7 +342,7 @@ const AdminHome: React.FC = () => {
       const updatedMonthsUser = [...monthsUser];
       getUser.forEach((user: any) => {
         const date = new Date(user.joinedAt);
-        const monthIndex = date.getUTCMonth(); // 0 for January, 11 for December
+        const monthIndex = date.getUTCMonth();
         updatedMonthsUser[monthIndex].joinAt += 1;
       });
       setMonthsUser(updatedMonthsUser);
@@ -355,7 +354,7 @@ const AdminHome: React.FC = () => {
       const updatedMonthsPost = [...monthsPost];
       getBlog.forEach((blog: any) => {
         const publishedDate = new Date(blog.publishedAt);
-        const monthIndex = publishedDate.getUTCMonth(); // 0 for January, 11 for December
+        const monthIndex = publishedDate.getUTCMonth();
         updatedMonthsPost[monthIndex].publishedAt += 1;
       });
       setMonthsPost(updatedMonthsPost);
@@ -368,7 +367,7 @@ const AdminHome: React.FC = () => {
     datasets: [
       {
         label: "จำนวนผู้ใช้",
-        data: monthsUser.map((e) => e.joinAt), // ข้อมูลกราฟ
+        data: monthsUser?.map((e) => e.joinAt), // ข้อมูลกราฟ
         borderColor: "rgba(75, 192, 192, 1)",
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         fill: true,

@@ -120,6 +120,29 @@ export const fetchAllUser = async () => {
   return data;
 };
 
+export const fetchBlogById = async (userId: string | null) => {
+  const token = sessionStorage.getItem("userId");
+  if (!token) {
+    console.error("No token found, redirecting to login...");
+    return;
+  }
+  const response = await fetch(`http://localhost:3001/admin/blogs/${userId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch posts");
+  }
+
+  const data = await response.json();
+  console.log("data", data);
+  return data;
+};
+
 export const deleteUserAPI = async (userId: string): Promise<void> => {
   const adminToken = sessionStorage.getItem("userId"); // ดึง token จาก sessionStorage
 
