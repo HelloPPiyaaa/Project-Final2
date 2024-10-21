@@ -186,7 +186,7 @@ export default function DashboardUser() {
         <h4>สถิติการเข้าชมโพสต์</h4>
       </div>
 
-      <Row className="mb-4">
+      {/* <Row className="mb-4">
         <Col md={6}>
           <Card>
             <Card.Body>
@@ -207,12 +207,19 @@ export default function DashboardUser() {
             </Card.Body>
           </Card>
         </Col>
-      </Row>
+      </Row> */}
 
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="ms-auto">
           <Dropdown>
-            <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+            <Dropdown.Toggle
+              style={{
+                backgroundColor: "#6c757d", // สีพื้นหลัง (secondary)
+                color: "white", // สีข้อความ
+                border: "none", // ลบขอบปกติ
+              }}
+              id="dropdown-basic"
+            >
               {timeRange || "เลือกช่วงเวลา"}{" "}
               {/* แสดงช่วงเวลาปัจจุบันหรือข้อความเริ่มต้น */}
             </Dropdown.Toggle>
