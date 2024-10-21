@@ -8,7 +8,8 @@ interface FilterPaginationDataProps {
   data: any[];
   page: number;
   countRoute: string;
-  data_to_send?: any; // ให้เป็น optional
+  data_to_send?: any;
+  user?: string;
 }
 
 export const filterPaginationData = async ({
@@ -18,8 +19,17 @@ export const filterPaginationData = async ({
   page,
   countRoute,
   data_to_send = {},
+  user = undefined,
 }: FilterPaginationDataProps) => {
   let obj;
+
+  const headers: { headers?: { Authorization: string } } = {};
+
+  if (user) {
+    headers.headers = {
+      Authorization: `Bearer ${user}`,
+    };
+  }
 
   if (state && !create_new_arr) {
     obj = { ...state, result: [...state.result, ...data], page: page };
@@ -27,7 +37,8 @@ export const filterPaginationData = async ({
     try {
       const response = await axios.post(
         API_BASE_URL + countRoute,
-        data_to_send
+        data_to_send,
+        headers
       );
       const totalDocs = response.data.totalDocs; // ใช้ totalDocs จากการตอบกลับ API
       obj = { result: data, page: 1, totalDocs }; // จัดเก็บข้อมูลทั้งหมดใน obj

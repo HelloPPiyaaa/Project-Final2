@@ -133,12 +133,21 @@ img {
   max-width: min-content;
 }
 
-.liked{
+.liked {
   color: red;
   background-color: rgba(255, 0, 0, 0.166);
 }
 
-.not-liked{
+.not-liked {
+  background-color: #f0f0f0;
+}
+
+.seved {
+  color: #494949;
+  background-color: rgba(255, 0, 0, 0.166);
+}
+
+.not-seved {
   background-color: #f0f0f0;
 }
 

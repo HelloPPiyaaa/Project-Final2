@@ -9,6 +9,8 @@ import { BlogContext } from "./blog.page";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { API_BASE_URL } from "../api/post";
+import { IoBookmarkOutline } from "react-icons/io5";
+import { MdOutlineBookmark } from "react-icons/md";
 
 const BlogInteraction = () => {
   const blogContext = useContext(BlogContext);
@@ -24,10 +26,13 @@ const BlogInteraction = () => {
     setBlog,
     islikedByUser,
     setLikeByUser,
+    issavedByUser,
+    setSaveByUser,
     setCommentWrapper,
   } = blogContext;
 
   const total_likes = blogActivity?.total_likes || 0;
+  const total_saves = blogActivity?.total_saves || 0;
   const total_comments = blogActivity?.total_comments || 0;
   const author_username = author?.username || "Unknown";
 
@@ -108,6 +113,45 @@ const BlogInteraction = () => {
     }
   };
 
+  const handleSave = () => {
+    if (access_token) {
+      setSaveByUser(!issavedByUser);
+
+      const newTotalSave = !issavedByUser ? total_saves + 1 : total_saves - 1;
+
+      setBlog({
+        ...blog,
+        activity: {
+          ...activity,
+          total_saves: newTotalSave,
+          total_comments: activity?.total_comments || 0,
+        },
+      });
+
+      axios
+        .post(
+          API_BASE_URL + "/create-blog/save-blog",
+          {
+            _id,
+            issavedByUser,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          }
+        )
+        .then(({ data }) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      toast.error("กรุณาเข้าสู่ระบบก่อนบันทึกบล็อก");
+    }
+  };
+
   return (
     <>
       <Toaster />
@@ -146,6 +190,21 @@ const BlogInteraction = () => {
           <p className="m-0" style={{ color: "#494949" }}>
             {total_comments}
           </p>
+
+          <button
+            className={
+              "rounded-circle d-flex align-items-center justify-content-center " +
+              (issavedByUser ? "saved" : "not-saved")
+            }
+            style={{
+              width: "2.5rem",
+              height: "2.5rem",
+              backgroundColor: "#f0f0f0",
+            }}
+            onClick={handleSave}
+          >
+            {issavedByUser ? <MdOutlineBookmark /> : <IoBookmarkOutline />}
+          </button>
         </div>
 
         <div className="d-flex gap-2 align-items-center">

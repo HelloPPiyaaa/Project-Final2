@@ -50,15 +50,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: [3, "fullname must be 3 letters long"],
     },
-    date_of_birth: {
-      type: Date,
-    },
-    gender: {
-      type: String,
-    },
-    tel: {
-      type: String,
-    },
     profile_picture: {
       type: String,
       default: () => {
@@ -72,9 +63,6 @@ const userSchema = new mongoose.Schema(
           ]
         }`;
       },
-    },
-    cover_pic: {
-      type: String,
     },
     is_admin: {
       type: Boolean,

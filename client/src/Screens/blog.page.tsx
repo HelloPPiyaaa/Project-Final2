@@ -25,6 +25,8 @@ interface BlogContextType {
   setBlog: Dispatch<SetStateAction<Partial<Post>>>;
   islikedByUser: boolean;
   setLikeByUser: React.Dispatch<React.SetStateAction<boolean>>;
+  issavedByUser: boolean;
+  setSaveByUser: React.Dispatch<React.SetStateAction<boolean>>;
   commentWrapper: boolean;
   setCommentWrapper: React.Dispatch<React.SetStateAction<boolean>>;
   totalParentCommentsLoaded: number;
@@ -51,6 +53,7 @@ export const BlogState: Partial<Post> = {
   publishedAt: "",
   activity: {
     total_likes: 0,
+    total_saves: 0,
     total_comments: 0,
   },
 };
@@ -66,6 +69,7 @@ const BlogPage = () => {
   const [loading, setLoading] = useState(true);
   let { topic, content, banner, author, publishedAt } = blog;
   const [islikedByUser, setLikeByUser] = useState(false);
+  const [issavedByUser, setSaveByUser] = useState(false);
   const [commentWrapper, setCommentWrapper] = useState(false);
   const [totalParentCommentsLoaded, setTotalParentCommentsLoaded] = useState(0);
 
@@ -113,6 +117,7 @@ const BlogPage = () => {
     setSimilarBlogs(null);
     setLoading(true);
     setLikeByUser(false);
+    setSaveByUser(false);
     setCommentWrapper(false);
     setTotalParentCommentsLoaded(0);
   };
@@ -128,6 +133,8 @@ const BlogPage = () => {
             setBlog,
             islikedByUser,
             setLikeByUser,
+            issavedByUser,
+            setSaveByUser,
             commentWrapper,
             setCommentWrapper,
             totalParentCommentsLoaded,

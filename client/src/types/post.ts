@@ -45,6 +45,7 @@ export type Post = {
   banner: string;
   activity: {
     total_likes?: number;
+    total_saves?: number;
     total_comments?: number;
     total_parent_comments?: number;
   };

@@ -39,9 +39,7 @@ export default function DashboardUser() {
                 จำนวนการกดถูกใจทั้งหมด
               </Typography>
               <Typography variant="h4" component="h2">
-                <span
-                
-                >
+                <span>
                   <IoHeart color="#fd464a" size={40} />{" "}
                   {/* Icon color and size */}
                 </span>{" "}
@@ -53,13 +51,11 @@ export default function DashboardUser() {
         <Grid item xs={12} sm={6} md={6}>
           <Card>
             <CardContent>
-            <Typography variant="h6" color="textSecondary" gutterBottom>
+              <Typography variant="h6" color="textSecondary" gutterBottom>
                 จำนวนการแสดงความคิดเห็นทั้งหมด
               </Typography>
-            <Typography variant="h4" component="h2">
-                <span
-                  
-                >
+              <Typography variant="h4" component="h2">
+                <span>
                   <FaCommentDots color="#6fa3cb" size={35} />{" "}
                   {/* Icon color and size */}
                 </span>{" "}

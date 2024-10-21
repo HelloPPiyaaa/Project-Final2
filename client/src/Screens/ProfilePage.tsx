@@ -17,11 +17,25 @@ import MinimalBlogPost from "./nobanner-blog";
 import InPageNavigation from "../components/Inpage-navigation";
 import PageNotFound from "./404";
 
-export const profileData = {
+interface Profile {
+  fullname: string;
+  username: string;
+  profile_picture: string;
+  bio: string;
+  email: string;
+  total_posts: number;
+  total_reads: number;
+  total_blogs: number;
+  social_links: Record<string, string>;
+  joinedAt: string;
+}
+
+export const profileData: Profile = {
   fullname: "",
   username: "",
   profile_picture: "",
   bio: "",
+  email: "",
   total_posts: 0,
   total_reads: 0,
   total_blogs: 0,
@@ -65,7 +79,7 @@ const ProfilePage = () => {
       })
       .then(({ data: user }) => {
         if (user !== null) {
-          console.log("User data: ", user); 
+          console.log("User data: ", user);
           setProfile(user);
         }
         if (profileId) {

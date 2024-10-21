@@ -5,19 +5,28 @@ import { MdOutlineMail } from "react-icons/md";
 import { IoEyeOffOutline } from "react-icons/io5";
 import { useState } from "react";
 import { IoEyeOutline } from "react-icons/io5";
+import { SlLockOpen } from "react-icons/sl";
+import { AiOutlineUser } from "react-icons/ai";
+import { CiAt } from "react-icons/ci";
+import { Link } from "react-router-dom";
 
 interface InputBoxProps {
   name: string;
   type: string;
-  id: string;
+  id?: string;
   value?: string;
   placeholder: string;
   icon: string;
+  className?: string;
+  disable?: boolean;
 }
 const iconMap: { [key: string]: React.ElementType } = {
   FaUser: FaUser,
   MdOutlineMail: MdOutlineMail,
   VscKey: VscKey,
+  SlLockOpen: SlLockOpen,
+  AiOutlineUser: AiOutlineUser,
+  CiAt: CiAt,
 };
 
 const InputBox: React.FC<InputBoxProps> = ({
@@ -27,6 +36,7 @@ const InputBox: React.FC<InputBoxProps> = ({
   value,
   placeholder,
   icon,
+  disable = false,
 }) => {
   const IconComponent = iconMap[icon];
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -36,6 +46,17 @@ const InputBox: React.FC<InputBoxProps> = ({
       className="Box"
       style={{ position: "relative", width: "100%", marginBottom: "1rem" }}
     >
+      {icon && (
+        <i
+          className={icon}
+          style={{
+            position: "absolute",
+            left: "16px",
+            top: "50%",
+            transform: "translateY(-50%)",
+          }}
+        ></i>
+      )}
       {IconComponent && (
         <IconComponent
           className="input-icon"
@@ -56,6 +77,7 @@ const InputBox: React.FC<InputBoxProps> = ({
         defaultValue={value}
         id={id}
         className="input-box"
+        disabled={disable}
         style={{ paddingLeft: "48px" }}
       />
 

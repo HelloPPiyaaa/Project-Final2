@@ -48,6 +48,10 @@ const postSchema = new mongoose.Schema(
         type: Number,
         default: 0,
       },
+      total_saves: {
+        type: Number,
+        default: 0,
+      },
       total_comments: {
         type: Number,
         default: 0,
@@ -72,22 +76,12 @@ const postSchema = new mongoose.Schema(
       default: false,
     },
 
-    likes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Like",
-      },
-    ],
     saves: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "SavedPost",
       },
     ],
-    views: {
-      type: Number,
-      default: 0,
-    },
   },
   {
     timestamps: {

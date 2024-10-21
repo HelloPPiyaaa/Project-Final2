@@ -6,11 +6,11 @@ import {
   Outlet,
 } from "react-router-dom";
 import LoginPage from "./Screens/login";
-import RegistPage from "./Screens/register";
 import TestPage from "./Screens/test";
 import HomePage from "./Screens/home.page";
 import Profile from "./Screens/profile";
-import EditProfile from "./Screens/edit-profile";
+// import EditProfile from "./Screens/edit-profile";
+import EditProfile from "./Screens/edit-profile.page";
 import RegisterAdmin from "./Screens/Admin/adminRegister";
 import Writepost from "./Screens/post";
 // import Content from "./Screens/Content";
@@ -43,7 +43,7 @@ import PageNotFound from "./Screens/404";
 import ProfilePage from "./Screens/ProfilePage";
 import BlogPage from "./Screens/blog.page";
 import DashboardUser from "./Screens/DashboardUser";
-
+import ChangPassword from "./Screens/change-password";
 
 interface UserContextType {
   userAuth: {
@@ -101,6 +101,7 @@ function App() {
             <Route path="*" element={<PageNotFound />} />
             <Route path="/user/:id" element={<ProfilePage />} />
             <Route path="/blog/:blog_id" element={<BlogPage />}></Route>
+            <Route path="/dashboard/edit-profile" element={<EditProfile />} />
 
             <Route path="/test" element={<TestPage />} />
             <Route path="/profile/:id" element={<Profile />} />

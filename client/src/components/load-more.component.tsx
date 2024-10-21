@@ -1,9 +1,14 @@
 interface LoadmoreProps {
   state?: any;
   fetchDataFun: (params: { page: number }) => void;
+  additionalParam?: any;
 }
 
-const LoadMoreDataBtn: React.FC<LoadmoreProps> = ({ state, fetchDataFun }) => {
+const LoadMoreDataBtn: React.FC<LoadmoreProps> = ({
+  state,
+  fetchDataFun,
+  additionalParam,
+}) => {
   if (
     state !== null &&
     state.result &&
@@ -13,7 +18,9 @@ const LoadMoreDataBtn: React.FC<LoadmoreProps> = ({ state, fetchDataFun }) => {
   ) {
     return (
       <button
-        onClick={() => fetchDataFun({ page: state.page + 1 })}
+        onClick={() =>
+          fetchDataFun({ ...additionalParam, page: state.page + 1 })
+        }
         className="loadmore"
       >
         โหลดเพิ่มเติม
