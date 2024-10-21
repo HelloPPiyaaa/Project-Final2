@@ -30,11 +30,7 @@ const UserNavigationPanel = () => {
         </Link>
 
         <Link to={`/dashboard/blogs`} className="link pl-8 ">
-          Dashboard
-        </Link>
-
-        <Link to={`/settings/edit-profile`} className="link pl-8">
-          ตั้งค่า
+          สถิติการเข้าชม
         </Link>
         <Link to={`/account/preference/${userId}`} className="link pl-8">
           Account Preference

@@ -14,7 +14,7 @@ import NoDataMessage from "../components/nodata.component";
 import LoadMoreDataBtn from "../components/load-more.component";
 import InPageNavigation from "../components/Inpage-navigation";
 import PageNotFound from "./404";
-import { FaUserFriends } from "react-icons/fa";
+
 import {
   fetchLikedPosts,
   fetchPostsByUser,
@@ -235,7 +235,7 @@ const ProfilePage = () => {
         <Loader />
       ) : profile_username.length ? (
         <section className="h-cover d-md-flex flex-row-reverse align-items-start profilepage ">
-          <div className="d-flex flex-column profile_img gap-1">
+          <div className="d-flex flex-column profile_img gap-1 text-center">
             <img src={profile_picture} alt="" className="rounded-circle " />
 
             <h1 className="fw-medium fs-6 mt-2">@{profile_username}</h1>
@@ -252,16 +252,16 @@ const ProfilePage = () => {
             </p>
             <div className="follow">
               {userProfile && (
-                <div className="follow-icon">
-                  <FaUserFriends />
-                  <FollowerModal userProfile={userProfile} />
+                <div className="follow-item">
+                  <FollowerModal userProfile={userProfile} />{" "}
+                  <span>{userProfile.followersCount}</span>
                 </div>
               )}
               <div className="bar-icon"></div>
               {userProfile && (
-                <div className="follow-icon">
-                  <FaUserFriends />
-                  <FollowingModal userProfile={userProfile} />
+                <div className="follow-item">
+                  <FollowingModal userProfile={userProfile} />{" "}
+                  <span>{userProfile.followingCount} </span>
                 </div>
               )}
             </div>

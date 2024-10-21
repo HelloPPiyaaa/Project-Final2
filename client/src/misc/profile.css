@@ -10,7 +10,7 @@
   padding: 0;
 }
 .bar-icon {
-  border-left: 1px solid black;
+  border-left: 1px solid rgb(86, 86, 86);
   margin: 0 10px 0 10px;
 }
 .follow-icon > h3 {
