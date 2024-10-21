@@ -8,6 +8,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import { FaCheckCircle } from "react-icons/fa";
 import { IoCloseCircle } from "react-icons/io5";
+import { registerAdmin } from "../../api/adminlogin-Regist";
+import { useNavigate } from "react-router-dom";
 
 const RegisterAdmin: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -19,6 +21,7 @@ const RegisterAdmin: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [passwordMatchError, setPasswordMatchError] = useState(false);
+  const navigate = useNavigate();
 
   const handleAlertClose = () => {
     setAlertMessage(null);
@@ -39,39 +42,40 @@ const RegisterAdmin: React.FC = () => {
     setPasswordMatchError(false);
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  //   if (password !== passwordConfirm) {
-  //     // ถ้ารหัสผ่านไม่ตรงกัน แสดงข้อความแจ้งเตือนและยกเลิกการส่งฟอร์ม
-  //     setPasswordMatchError(true);
-  //     return;
-  //   }
+    if (password !== passwordConfirm) {
+      // ถ้ารหัสผ่านไม่ตรงกัน แสดงข้อความแจ้งเตือนและยกเลิกการส่งฟอร์ม
+      setPasswordMatchError(true);
+      return;
+    }
 
-  //   try {
-  //     const admin = {
-  //       username,
-  //       email,
-  //       password,
-  //       tel,
-  //       firstname,
-  //       lastname,
-  //     };
-  //     const response = await registerAdmin(admin);
-  //     console.log(response); // ตรวจสอบ response ใน Console Log
+    try {
+      const admin = {
+        username,
+        email,
+        password,
+        tel,
+        firstname,
+        lastname,
+      };
+      const response = await registerAdmin(admin);
+      console.log(response); // ตรวจสอบ response ใน Console Log
 
-  //     displayAlert("ลงทะเบียนสำเร็จ!");
-  //   } catch (error) {
-  //     console.error("Registration failed:", error);
+      displayAlert("ลงทะเบียนสำเร็จ!");
+      navigate('/admin/login')
+    } catch (error) {
+      console.error("Registration failed:", error);
 
-  //     displayAlert("คุณมีบัญชีอยู่แล้ว โปรดเข้าสู่ระบบ");
-  //   }
-  // };
+      displayAlert("คุณมีบัญชีอยู่แล้ว โปรดเข้าสู่ระบบ");
+    }
+  };
 
   return (
     <div className="regispage ">
       <Container className="mt-5">
-        {/* <Form className="Form1" onSubmit={handleSubmit}>
+        <Form className="Form1" onSubmit={handleSubmit}>
           <h3>สมัครใช้งาน</h3>
 
           <Row>
@@ -162,7 +166,7 @@ const RegisterAdmin: React.FC = () => {
           <Row style={{ justifyContent: "center" }}>
             <button id="RGbutton">ลงทะเบียน</button>
           </Row>
-        </Form> */}
+        </Form>
       </Container>
 
       {alertMessage && (

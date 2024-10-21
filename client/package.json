@@ -29,6 +29,7 @@
     "@types/react": "18.2.47",
     "@types/socket.io-client": "3.0.0",
     "@types/styled-components": "^5.1.34",
+    "antd": "^5.21.4",
     "axios": "1.7.2",
     "bcryptjs": "2.4.3",
     "bootstrap": "5.3.3",
