@@ -309,53 +309,62 @@ router.post("/add-comment", verifyJWT, (req, res) => {
     commentObj.isReply = true;
   }
 
-  new Comment(commentObj).save().then(async (commentFile) => {
-    let { comment, commentedAt, children } = commentFile;
+  new Comment(commentObj)
+    .save()
+    .then(async (commentFile) => {
+      let { comment, commentedAt, children } = commentFile;
 
-    Blog.findOneAndUpdate(
-      { _id },
-      {
-        $push: { comments: commentFile._id },
-        $inc: {
-          "activity.total_comments": 1,
-          "activity.total_parent_comments": replying_to ? 0 : 1,
-        },
-      }
-    ).then((blog) => {
+      await Blog.findOneAndUpdate(
+        { _id },
+        {
+          $push: { comments: commentFile._id },
+          $inc: {
+            "activity.total_comments": 1,
+            "activity.total_parent_comments": replying_to ? 0 : 1,
+          },
+        }
+      );
+
       console.log("แสดงความคิดเห็นแล้ว!");
-    });
 
-    let notifaicationObj = {
-      type: replying_to ? "reply" : "comment",
-      blog: _id,
-      notification_for: blog_author,
-      user: user_id,
-      comment: commentFile._id,
-    };
+      let notifaicationObj = {
+        type: replying_to ? "reply" : "comment",
+        blog: _id,
+        notification_for: blog_author,
+        user: user_id,
+        comment: commentFile._id,
+        entityModel: "User", // Add entity model
+        entity: commentFile._id, // Reference the comment
+      };
 
-    if (replying_to) {
-      notifaicationObj.replied_on_comment = replying_to;
+      if (replying_to) {
+        notifaicationObj.replied_on_comment = replying_to;
 
-      await Comment.findOneAndUpdate(
-        { _id: replying_to },
-        { $push: { children: commentFile._id } }
-      ).then((replyingToCommentDoc) => {
+        const replyingToCommentDoc = await Comment.findOneAndUpdate(
+          { _id: replying_to },
+          { $push: { children: commentFile._id } }
+        );
+
         notifaicationObj.notification_for = replyingToCommentDoc.commented_by;
+      }
+
+      new Notifications(notifaicationObj)
+        .save()
+        .then(() => console.log("แจ้งเตือนใหม่!!"))
+        .catch((err) => console.error("Error saving notification:", err));
+
+      return res.status(200).json({
+        comment,
+        commentedAt,
+        _id: commentFile._id,
+        user_id,
+        children,
       });
-    }
-
-    new Notifications(notifaicationObj)
-      .save()
-      .then((notifaications) => console.log("แจ้งเตือนใหม่!!"));
-
-    return res.status(200).json({
-      comment,
-      commentedAt,
-      _id: commentFile._id,
-      user_id,
-      children,
+    })
+    .catch((error) => {
+      console.error("Error saving comment:", error);
+      return res.status(500).json({ error: "Error saving comment." });
     });
-  });
 });
 
 router.post("/get-blog-comments", (req, res) => {
