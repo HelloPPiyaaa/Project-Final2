@@ -38,7 +38,6 @@ router.post("/", (req, res) => {
           if (!result) {
             return res.status(403).json({ error: "รหัสผ่านไม่ถูกต้อง" });
           } else {
-            console.log("formDatatoSend(user)", formDatatoSend(user));
             return res.status(200).json(formDatatoSend(user));
           }
         });

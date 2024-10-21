@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { IoMdAdd } from "react-icons/io";
 import { AiFillQuestionCircle } from "react-icons/ai";
 import { Modal, Button } from "react-bootstrap";
@@ -11,7 +10,7 @@ import {
 } from "../../api/manageQAPI";
 
 const ManageQ: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const id = sessionStorage.getItem("adminId");
   const [questions, setQuestions] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -40,12 +39,10 @@ const ManageQ: React.FC = () => {
 
   const handleAddQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!id) {
       console.error("Admin ID is undefined");
       return;
     }
-
     try {
       const newQuestion = await addQuestionAPI(topic, answer, id);
       setQuestions((prev) => [...prev, newQuestion]);

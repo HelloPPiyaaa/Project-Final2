@@ -14,6 +14,7 @@ import {
   fetchAllUser,
   fetchUser,
   fetchUsersAPI,
+  fetchViews,
 } from "../../api/adminProfile";
 import { LuView } from "react-icons/lu";
 import { PiUsersThreeFill } from "react-icons/pi";
@@ -81,6 +82,39 @@ export interface Report {
   };
 }
 
+interface MonthData {
+  month: string;
+  publishedAt: number;
+}
+
+const transformData = (data: any[]): MonthData[] => {
+  // Create an array for the months
+  const monthsPost: MonthData[] = [
+    { month: "January", publishedAt: 0 },
+    { month: "February", publishedAt: 0 },
+    { month: "March", publishedAt: 0 },
+    { month: "April", publishedAt: 0 },
+    { month: "May", publishedAt: 0 },
+    { month: "June", publishedAt: 0 },
+    { month: "July", publishedAt: 0 },
+    { month: "August", publishedAt: 0 },
+    { month: "September", publishedAt: 0 },
+    { month: "October", publishedAt: 0 },
+    { month: "November", publishedAt: 0 },
+    { month: "December", publishedAt: 0 },
+  ];
+
+  // Iterate over the input data
+  data.forEach((item) => {
+    const monthIndex = new Date(Date.parse(item.month + " 1, 2024")).getMonth();
+    if (monthIndex >= 0 && monthIndex < 12) {
+      monthsPost[monthIndex].publishedAt += item.total_reads; // Sum up total_reads for each month
+    }
+  });
+
+  return monthsPost;
+};
+
 const AdminHome: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const API_BASE_URL = "http://localhost:3001";
@@ -92,6 +126,7 @@ const AdminHome: React.FC = () => {
   const [totalViews, setTotalViews] = useState<number>(0);
   const [getUser, setGetUser] = useState<any>();
   const [getBlog, setGetBlog] = useState<any>();
+  const [getView, setGetView] = useState<any>();
 
   const [selectedCate, setSelectedCate] = useState<string>("dashboard");
   const [selectedBlog, setSelectedBlog] = useState<string>("blog-all");
@@ -103,6 +138,7 @@ const AdminHome: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [users, setUsers] = useState<any>([]);
   const [allUsers, setAllUsers] = useState<any>([]);
+  const [monthsPost, setMonthsPost] = useState<MonthData[]>([]);
 
   const handleShowModal = (report: any) => {
     setSelectedReport(report);
@@ -142,38 +178,6 @@ const AdminHome: React.FC = () => {
 
     fetchUsers();
   }, []);
-
-  const convertPostsToGrowthData = (posts: any[]) => {
-    const monthNames = [
-      "มกราคม",
-      "กุมภาพันธ์",
-      "มีนาคม",
-      "เมษายน",
-      "พฤษภาคม",
-      "มิถุนายน",
-      "กรกฎาคม",
-      "สิงหาคม",
-      "กันยายน",
-      "ตุลาคม",
-      "พฤศจิกายน",
-      "ธันวาคม",
-    ];
-
-    const postCounts: { [key: number]: number } = {};
-
-    posts.forEach((post) => {
-      const date = new Date(post.createdAt);
-      const month = date.getMonth();
-      postCounts[month] = (postCounts[month] || 0) + 1;
-    });
-
-    const growthData = monthNames.map((monthName, index) => ({
-      month: monthName,
-      numberOfPosts: postCounts[index] || 0,
-    }));
-
-    return growthData;
-  };
 
   useEffect(() => {
     const sideMenu = document.querySelector("aside");
@@ -234,15 +238,18 @@ const AdminHome: React.FC = () => {
         const AllPost = await fetchAllBlog();
         const blog = await fetchAllUser();
         const User = await fetchUser();
-        const totalViews = AllPost.reduce(
-          (acc: any, post: any) => acc + post.activity.total_reads,
+        const view = await fetchViews();
+        const totalViews = view.reduce(
+          (acc: any, post: any) => acc + post.total_reads,
           0
         );
         setGetUser(User);
-        setGetBlog(AllPost);
+        setGetBlog(blog);
         setUserCounter(userCountData);
-        setPostCounter(AllPost.length);
+        setPostCounter(blog.length);
         setTotalViews(totalViews);
+        const transformedData = transformData(view);
+        setMonthsPost(transformedData);
       } catch (error) {
         console.error("Error fetching user count:", error);
       }
@@ -262,6 +269,18 @@ const AdminHome: React.FC = () => {
 
   useEffect(() => {
     fetchReports();
+  }, []);
+
+  useEffect(() => {
+    const fetchViews = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/views`);
+        setGetView(response.data);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      }
+    };
+    fetchViews();
   }, []);
 
   const handleCategorySelection = (category: string) => {
@@ -308,21 +327,6 @@ const AdminHome: React.FC = () => {
     { month: "December", joinAt: 0 },
   ]);
 
-  const [monthsPost, setMonthsPost] = useState([
-    { month: "January", publishedAt: 0 },
-    { month: "February", publishedAt: 0 },
-    { month: "March", publishedAt: 0 },
-    { month: "April", publishedAt: 0 },
-    { month: "May", publishedAt: 0 },
-    { month: "June", publishedAt: 0 },
-    { month: "July", publishedAt: 0 },
-    { month: "August", publishedAt: 0 },
-    { month: "September", publishedAt: 0 },
-    { month: "October", publishedAt: 0 },
-    { month: "November", publishedAt: 0 },
-    { month: "December", publishedAt: 0 },
-  ]);
-
   useEffect(() => {
     if (getUser && getUser.length > 0) {
       const updatedMonthsUser = [...monthsUser];
@@ -334,18 +338,6 @@ const AdminHome: React.FC = () => {
       setMonthsUser(updatedMonthsUser);
     }
   }, [getUser]);
-
-  useEffect(() => {
-    if (getBlog && getBlog.length > 0) {
-      const updatedMonthsPost = [...monthsPost];
-      getBlog.forEach((blog: any) => {
-        const publishedDate = new Date(blog.publishedAt);
-        const monthIndex = publishedDate.getUTCMonth();
-        updatedMonthsPost[monthIndex].publishedAt += 1;
-      });
-      setMonthsPost(updatedMonthsPost);
-    }
-  }, [getBlog]);
 
   // ข้อมูลตัวอย่างสำหรับกราฟ
   const userData = {
@@ -747,70 +739,6 @@ const AdminHome: React.FC = () => {
                     borderRadius: "2rem",
                   }}
                 >
-                  {/* <table>
-                    <thead className="pt-5">
-                      <tr>
-                        <th>User Name</th>
-                        <th>Date</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Details</th>
-                      </tr>
-                    </thead>
-                    {adminProfile && (
-                      <tbody>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="success">Approve</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="danger">Decline</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="success">Approve</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                      </tbody>
-                    )}
-                  </table> */}
                   <table>
                     <thead className="pt-5">
                       <tr>

@@ -28,7 +28,6 @@ function Navbar() {
   };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    console.log(e);
     const query = e.currentTarget.value;
 
     if (e.key === "Enter" && query.length) {

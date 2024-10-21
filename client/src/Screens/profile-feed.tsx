@@ -27,7 +27,6 @@ const ProfileFeeds = () => {
   }, []);
 
   const handleClickCard = (id: string) => {
-    console.log(id);
     navigate(`/content/${id}`);
   };
 

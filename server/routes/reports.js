@@ -18,8 +18,6 @@ router.get("/", async (req, res) => {
         },
       });
 
-    // console.log(JSON.stringify(reports, null, 2));
-
     res.status(200).json(reports);
   } catch (error) {
     console.error("Error fetching reports:", error);

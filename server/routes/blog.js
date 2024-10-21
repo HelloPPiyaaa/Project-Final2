@@ -7,6 +7,7 @@ const User = require("../models/user");
 const Blog = require("../models/blog");
 const Like = require("../models/like");
 const Notifications = require("../models/notifaications");
+const View = require("../models/view");
 const Comment = require("../models/comments");
 
 const verifyJWT = (req, res, next) => {
@@ -124,65 +125,71 @@ router.post("/", verifyJWT, (req, res) => {
   }
 });
 
-router.post("/get-blog", (req, res) => {
-  let { blog_id, draft, mode } = req.body;
+router.post("/get-blog", async (req, res) => {
+  try {
+    const { blog_id, draft, mode } = req.body;
 
-  let incrementVal = mode !== "edit" ? 1 : 0;
+    // Increment total reads only when mode is not 'edit'
+    const incrementVal = mode !== "edit" ? 1 : 0;
 
-  Blog.findOneAndUpdate(
-    { blog_id },
-    { $inc: { "activity.total_reads": incrementVal } }
-  )
-    .populate("author", "fullname username profile_picture")
-    .select("topic des content banner activity publishedAt blog_id tags")
-    .then((blog) => {
-      User.findOneAndUpdate(
+    // Find and update the blog with the incremented total_reads
+    const blog = await Blog.findOneAndUpdate(
+      { blog_id },
+      { $inc: { "activity.total_reads": incrementVal } }
+    )
+      .populate("author", "fullname username profile_picture")
+      .select("topic des content banner activity publishedAt blog_id tags");
+
+    if (!blog) {
+      console.error("Blog not found");
+      return res.status(404).json({ error: "Blog not found" });
+    }
+
+    // Update total reads of the user if it's not in edit mode
+    if (incrementVal > 0) {
+      await User.findOneAndUpdate(
         { username: blog.author.username },
         { $inc: { total_reads: incrementVal } }
-      ).catch((err) => {
-        return res.status(500).json({ error: err.message });
-      });
+      );
 
-      if (blog.draft && !draft) {
-        return res.status(500).json({ error: err.message });
-      }
+      // Increment view count in the View model
+      await View.incrementViewCount(blog._id);
+    }
 
-      return res.status(200).json({ blog });
-    })
-    .catch((err) => {
-      return res.status(500).json({ error: err.message });
-    });
+    // Prevent viewing drafts unless specifically allowed
+    if (blog.draft && !draft) {
+      console.error("Unauthorized to view draft");
+      return res.status(403).json({ error: "Unauthorized to view draft" });
+    }
+
+    return res.status(200).json({ blog });
+  } catch (err) {
+    console.error("Error fetching blog:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 router.post("/like-blog", verifyJWT, async (req, res) => {
   try {
-    const user_id = req.user; // Assuming req.user contains the authenticated user's id
+    const user_id = req.user;
     const { _id, islikedByUser } = req.body;
     const incrementVal = !islikedByUser ? 1 : -1;
-
-    // Update the total likes count in the blog
     const blog = await Blog.findOneAndUpdate(
       { _id },
       { $inc: { "activity.total_likes": incrementVal } }
     );
-
     if (!blog) {
       return res.status(404).json({ error: "Blog not found" });
     }
 
     if (!islikedByUser) {
-      // User is liking the post
       const newLike = new Like({
         user: user_id,
         post: _id,
       });
       const savedLike = await newLike.save();
-
-      // Add the new like's _id to the blog's likes array
       blog.likes.push(savedLike._id);
       await blog.save();
-
-      // Create a notification for the like
       const notification = new Notifications({
         type: "like",
         blog: _id,
@@ -194,20 +201,16 @@ router.post("/like-blog", verifyJWT, async (req, res) => {
 
       return res.status(200).json({ liked_by_user: true });
     } else {
-      // User is unliking the post
       const likeToRemove = await Like.findOneAndDelete({
         user: user_id,
         post: _id,
       });
 
       if (likeToRemove) {
-        // Remove the like's _id from the blog's likes array
         blog.likes = blog.likes.filter(
           (likeId) => !likeId.equals(likeToRemove._id) // Filter out the like
         );
         await blog.save();
-
-        // Delete the corresponding notification
         await Notifications.findOneAndDelete({
           user: user_id,
           blog: _id,
@@ -238,10 +241,8 @@ router.post("/isliked-by-user", verifyJWT, (req, res) => {
 
 router.post("/dislike-blog", verifyJWT, async (req, res) => {
   try {
-    const user_id = req.user; // Assuming req.user contains the authenticated user's id
+    const user_id = req.user;
     const { _id } = req.body;
-
-    // Decrement the total likes count in the blog
     const blog = await Blog.findOneAndUpdate(
       { _id },
       { $inc: { "activity.total_likes": -1 } },
@@ -251,21 +252,16 @@ router.post("/dislike-blog", verifyJWT, async (req, res) => {
     if (!blog) {
       return res.status(404).json({ error: "Blog not found" });
     }
-
-    // Remove the like from the Like model
     const deletedLike = await Like.findOneAndDelete({
       user: user_id,
       post: _id,
     });
 
     if (deletedLike) {
-      // Remove the like's _id from the blog's likes array
       blog.likes = blog.likes.filter(
         (likeId) => !likeId.equals(deletedLike._id)
       );
       await blog.save();
-
-      // Remove the notification for the like
       await Notifications.findOneAndDelete({
         user: user_id,
         blog: _id,

@@ -34,7 +34,6 @@ const UserAuthForm: React.FC<LoginPageProps> = ({ type }) => {
       body: JSON.stringify(formData),
     })
       .then((response) => {
-        console.log("response", response);
         if (!response.ok) {
           return response.json().then((errorData) => {
             throw new Error(errorData.error || "Error occurred");
@@ -43,7 +42,6 @@ const UserAuthForm: React.FC<LoginPageProps> = ({ type }) => {
         return response.json();
       })
       .then((data) => {
-        console.log("data", data);
         storeInSession("user", JSON.stringify(data));
         userInSession("userId", data._id);
         setUserAuth(data);
@@ -73,8 +71,6 @@ const UserAuthForm: React.FC<LoginPageProps> = ({ type }) => {
       formData[key] = value;
     });
 
-    console.log("formData:", formData);
-
     const { fullname, email, password } = formData;
     if (fullname) {
       if (fullname.length < 3) {
@@ -99,7 +95,6 @@ const UserAuthForm: React.FC<LoginPageProps> = ({ type }) => {
   const handleGoogleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     const userCredential = await authWithGoogle();
-    console.log("userCredential", userCredential);
 
     if (userCredential) {
       const user = userCredential.user;

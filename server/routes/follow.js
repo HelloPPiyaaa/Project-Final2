@@ -72,7 +72,6 @@ router.get("/:id", async function (req, res, next) {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    console.log("user", user);
     res.json(user);
   } catch (err) {
     console.error(err);

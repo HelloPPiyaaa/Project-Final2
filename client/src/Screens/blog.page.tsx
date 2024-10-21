@@ -117,10 +117,6 @@ const BlogPage = () => {
     }
   };
 
-  useEffect(() => {
-    console.log("blog", blog);
-  }, [blog]);
-
   const fetchBlog = () => {
     axios
       .post(API_BASE_URL + "/create-blog/get-blog", { blog_id })

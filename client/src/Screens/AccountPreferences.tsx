@@ -34,10 +34,6 @@ const AccountPreferences: React.FC = () => {
     setNewNotificationSetting((prev) => !prev);
   };
 
-  useEffect(() => {
-    console.log("userData", userData);
-  }, [userData]);
-
   const handleSaveNotificationSettings = async () => {
     try {
       await axios.post(

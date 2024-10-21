@@ -35,8 +35,6 @@ router.get("/search", async (req, res) => {
 router.post("/", async (req, res) => {
   const { user, topic, detail, category, image, contentWithImages } = req.body;
 
-  console.log("Request body:", req.body); // แสดงข้อมูลที่ได้รับ
-
   if (!user || !topic || !category || !image) {
     return res.status(400).json({ message: "All fields are required" });
   }

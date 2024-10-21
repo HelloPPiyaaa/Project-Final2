@@ -12,7 +12,6 @@ export function FollowingModal({ userProfile }: any) {
   const handleButtonClick = async () => {
     setSmShow(true);
     const me = sessionStorage.getItem("userId");
-    console.log("me", me);
     if (me) {
       try {
         const profileData = await fetchProfile(me);
@@ -51,7 +50,6 @@ export function FollowingModal({ userProfile }: any) {
           you: you,
         }),
       });
-      console.log("response", response);
 
       if (!response.ok) {
         const statusText = response.statusText || "Unknown Error";
@@ -121,7 +119,6 @@ export function FollowingModal({ userProfile }: any) {
         </Modal.Header>
         <Modal.Body>
           {currentUser?.following?.map((c: any) => {
-            console.log("c", c);
             return (
               <div
                 key={c + "s"}

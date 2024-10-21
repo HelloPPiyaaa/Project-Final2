@@ -22,10 +22,6 @@ const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({
   const navigate = useNavigate();
   const API_BASE_URL = "http://localhost:3001";
 
-  useEffect(() => {
-    console.log("report", report);
-  }, [report]);
-
   const verifyReport = async (
     reportId: string,
     isVerified: boolean

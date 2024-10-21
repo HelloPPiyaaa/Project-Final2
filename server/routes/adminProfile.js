@@ -56,16 +56,12 @@ router.post("/", async (req, res) => {
 const isAdmin = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
-    console.log("token in server", token);
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const admin = await User.findById(decoded.id);
-
-    console.log("Decoded: ", decoded);
-    console.log("Admin: ", admin);
 
     if (admin && admin.is_admin) {
       req.user = admin;

@@ -3,7 +3,82 @@ import { Line } from "react-chartjs-2";
 import { Card, Row, Col } from "react-bootstrap";
 import { IoHeart } from "react-icons/io5";
 import { FaCommentDots } from "react-icons/fa";
-import { fetchBlogById } from "../api/adminProfile";
+import { fetchBlogById, fetchViews } from "../api/adminProfile";
+
+interface ViewData {
+  _id: string;
+  month: string;
+  year: number;
+  blog: string;
+  __v: number;
+  createdAt: string;
+  total_reads: number;
+  updatedAt: string;
+}
+
+interface MonthlyViewCount {
+  month: string;
+  viewCount: number;
+}
+
+interface YearlyViewCount {
+  year: string;
+  viewCount: number;
+}
+
+const getMonthlyViewCounts = (data: ViewData[]): MonthlyViewCount[] => {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const monthlyViewCounts: MonthlyViewCount[] = months.map((month) => ({
+    month,
+    viewCount: 0,
+  }));
+  data.forEach((entry) => {
+    const monthIndex = months.indexOf(entry.month);
+    if (monthIndex !== -1) {
+      monthlyViewCounts[monthIndex].viewCount += entry.total_reads;
+    }
+  });
+
+  return monthlyViewCounts;
+};
+
+const getYearlyViewCounts = (data: ViewData[]): YearlyViewCount[] => {
+  const currentYear = new Date().getFullYear();
+
+  const yearsRange = Array.from(
+    { length: 5 },
+    (_, index) => currentYear - 2 + index
+  );
+  const yearlyViewCounts: YearlyViewCount[] = yearsRange.map((year) => ({
+    year: year.toString(),
+    viewCount: 0,
+  }));
+  data.forEach((entry) => {
+    if (typeof entry.year === "number") {
+      const yearIndex = yearlyViewCounts.findIndex(
+        (y) => y.year === entry.year.toString()
+      );
+      if (yearIndex !== -1) {
+        yearlyViewCounts[yearIndex].viewCount += entry.total_reads;
+      }
+    }
+  });
+  return yearlyViewCounts;
+};
 
 export default function DashboardUser() {
   const userId = sessionStorage.getItem("userId");
@@ -12,12 +87,17 @@ export default function DashboardUser() {
   const [totalLikes, setTotalLikes] = useState(0);
   const [totalComments, setTotalComments] = useState(0);
   const [totalReads, setTotalReads] = useState(0);
+  const [totalViewsMonth, setTotalViewsMonth] = useState<any[]>([]);
+  const [totalViewsYear, setTotalViewsYear] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const AllPost = await fetchBlogById(userId);
+        const view = await fetchViews();
         setGetBlog(AllPost);
+        setTotalViewsMonth(getMonthlyViewCounts(view));
+        setTotalViewsYear(getYearlyViewCounts(view));
       } catch (error) {
         console.error("Error fetching user count:", error);
       }
@@ -46,11 +126,11 @@ export default function DashboardUser() {
   };
 
   const monthData = {
-    labels: ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค."],
+    labels: totalViewsMonth.map((e) => e.month),
     datasets: [
       {
         label: "จำนวนผู้เข้าชม",
-        data: [15, 30, 8, 20, 12],
+        data: totalViewsMonth.map((e) => e.viewCount),
         backgroundColor: "rgba(253, 70, 74, 0.6)",
         borderColor: "rgba(253, 70, 74, 1)",
         tension: 0.5,
@@ -60,11 +140,11 @@ export default function DashboardUser() {
   };
 
   const yearData = {
-    labels: ["2562", "2563", "2564", "2565", "2566"],
+    labels: totalViewsYear.map((e) => e.year),
     datasets: [
       {
         label: "จำนวนผู้เข้าชม",
-        data: [15, 25, 8, 20, 18],
+        data: totalViewsYear.map((e) => e.viewCount),
         backgroundColor: "rgba(253, 70, 74, 0.6)",
         borderColor: "rgba(253, 70, 74, 1)",
         tension: 0.5,

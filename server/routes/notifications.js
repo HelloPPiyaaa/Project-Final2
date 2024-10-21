@@ -13,8 +13,6 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ message: "User ID is required" });
   }
 
-  console.log("userId", userId);
-
   try {
     const userNotifications = await Notification.find({
       notification_for: userId,
