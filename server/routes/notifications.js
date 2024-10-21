@@ -6,8 +6,8 @@ const Post = require("../models/blog");
 const Comment = require("../models/comment");
 const Like = require("../models/like");
 
-router.get("/", async (req, res) => {
-  const { userId } = req.query;
+router.get("/:id", async (req, res) => {
+  const { id: userId } = req.params; // Extract userId from req.params
 
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
 
     res.json(userNotifications);
   } catch (error) {
-    console.error("Error fetching notifications:", error); // Log the error
+    console.error("Error fetching notifications:", error);
     res
       .status(500)
       .json({ message: "Error fetching notifications: " + error.message });

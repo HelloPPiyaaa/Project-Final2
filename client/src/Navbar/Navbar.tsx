@@ -7,7 +7,6 @@ import { LuFileEdit } from "react-icons/lu";
 import { UserContext } from "../App";
 import { IoNotificationsOutline } from "react-icons/io5";
 import UserNavigationPanel from "../components/user-navigation.component";
-import UserNotificationPanel from "../components/notification.component";
 import axios from "axios";
 
 function Navbar() {
@@ -28,7 +27,7 @@ function Navbar() {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/notifications?userId=${userId}`
+          `${API_BASE_URL}/notifications/${userId}`
         );
 
         if (response.status === 200) {
