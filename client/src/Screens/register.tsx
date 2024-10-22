@@ -17,7 +17,6 @@ import GoogleLogin from "react-google-login";
 import { gapi } from "gapi-script";
 import { FcGoogle } from "react-icons/fc";
 
-
 const RegisterForm: React.FC = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -75,7 +74,12 @@ const RegisterForm: React.FC = () => {
       const response = await registerUser(user);
       console.log(response); // ตรวจสอบ response ใน Console Log
 
-      displayAlert("ลงทะเบียนสำเร็จ!");
+      if (response) {
+        sessionStorage.setItem("userId", response._id);
+        displayAlert("ลงทะเบียนสำเร็จ!");
+      } else {
+        displayAlert("ลงทะเบียนไม่สำเร็จ!");
+      }
     } catch (error) {
       console.error("Registration failed:", error);
 
@@ -103,9 +107,13 @@ const RegisterForm: React.FC = () => {
         };
 
         const registerResponse = await registerUser(user);
-        console.log(registerResponse);
 
-        displayAlert("ลงทะเบียนสำเร็จ!");
+        if (registerResponse) {
+          sessionStorage.setItem("userId", registerResponse._id);
+          displayAlert("ลงทะเบียนสำเร็จ!");
+        } else {
+          displayAlert("ลงทะเบียนไม่สำเร็จ!");
+        }
       } else {
         console.error("Google registration failed: Invalid response", response);
         displayAlert("ลงทะเบียนผ่าน Google ไม่สำเร็จ");

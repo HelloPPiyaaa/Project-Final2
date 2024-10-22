@@ -1,70 +1,95 @@
 import React, { useState, useEffect } from "react";
 import { PiUsersThreeFill } from "react-icons/pi";
 import { LuView } from "react-icons/lu";
-import {
-  fetchAdminProfile,
-  fetchUsersAPI,
-  deleteUserAPI,
-} from "../../api/adminProfile";
-import { useParams } from "react-router-dom";
+import { updateUserAPI } from "../../api/adminProfile";
+import { useNavigate, useParams } from "react-router-dom";
 import GenderChart from "./Chart/GenderChart";
+import { Button, Modal, Form } from "react-bootstrap";
+import axios from "axios";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai"; // Import eye icons
+import DeleteAccountModal from "../DeleteAccount-confirm";
+import DeleteAdminAccountModal from "./adminDelete-account";
 
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  profile_picture: string;
+interface UserProps {
+  users: any[];
+  allUsers: any[];
 }
 
-const ManageUser: React.FC = () => {
+const ManageUser: React.FC<UserProps> = ({ users, allUsers }) => {
   const { id } = useParams<{ id: string }>();
-  const [adminProfile, setAdminProfile] = useState<any>(null);
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [tel, setTel] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [fullname, setFullname] = useState("");
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [fetchUserData, setFetchUserData] = useState<any>([]);
+
+  const [passwordVisibility, setPasswordVisibility] = useState<{
+    [key: string]: boolean;
+  }>({});
+
+  const API_BASE_URL = "http://localhost:3001";
+  const navigate = useNavigate();
 
   const genderData = {
     male: 30,
     female: 20,
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (id) {
-          const profileData = await fetchAdminProfile(id);
-          setUsername(profileData.username);
-          setAdminProfile(profileData);
-          setEmail(profileData.email);
-          setTel(profileData.tel);
-          setFirstname(profileData.firstname);
-          setLastname(profileData.lastname);
-        }
-
-        const usersData = await fetchUsersAPI();
-        setUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, [id]);
-
-  const handleEditUser = (userId: string) => {
-    // Implement the edit user functionality here
-    console.log("Edit user with ID:", userId);
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setFullname(user.fullname);
+    setEmail(user.email);
+    setShowEditModal(true);
   };
 
   const handleDeleteUser = async (userId: string) => {
+    setSelectedUser(userId);
+    setShowDeleteModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowEditModal(false);
+    setFullname("");
+    setEmail("");
+    setSelectedUser(null);
+  };
+
+  const handleUpdateUser = async () => {
     try {
-      await deleteUserAPI(userId);
-      setUsers(users.filter((user) => user._id !== userId));
+      await updateUserAPI(selectedUser._id, fullname, email);
+      setShowEditModal(false);
+      fetchUsers();
+    } catch (error: any) {
+      if (error.message.includes("Email is already in use.")) {
+        alert("This email is already in use. Please choose another one.");
+      } else {
+        console.error("Failed to update user:", error);
+      }
+    }
+  };
+
+  // Function to toggle password visibility for a specific user
+  const togglePasswordVisibility = (userId: string) => {
+    setPasswordVisibility((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+  };
+
+  const handleDeleteSuccess = () => {
+    setShowDeleteModal(false);
+    fetchUsers();
+    alert("Your account has been deleted.");
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/profile`);
+      setFetchUserData(response.data);
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error fetching reports:", error);
     }
   };
 
@@ -79,10 +104,9 @@ const ManageUser: React.FC = () => {
             <div className="middle">
               <div className="left">
                 <h3>ผู้ใช้ทั้งหมด</h3>
-                <h1>{users.length}</h1>
+                <h1>{allUsers.length}</h1>
               </div>
             </div>
-            <small className="text-muted1">Last 24 Hour</small>
           </div>
 
           <div className="view-all">
@@ -90,15 +114,7 @@ const ManageUser: React.FC = () => {
             <div className="middle">
               <div className="left">
                 <h3>ผู้ใช้ใหม่</h3>
-                <h1>256</h1>
-              </div>
-              <div className="progres">
-                <svg className="svg4">
-                  <circle cx="38" cy="38" r="36"></circle>
-                </svg>
-                <div className="number">
-                  <p>80%</p>
-                </div>
+                <h1>{users.length}</h1>
               </div>
             </div>
             <small className="text-muted1">Last 24 Hour</small>
@@ -122,38 +138,154 @@ const ManageUser: React.FC = () => {
                 maxHeight: "300px",
               }}
             >
-              {users.map((user) => (
-                <div className="item" key={user._id}>
-                  <div className="profile-photo">
-                    <img src={user.profile_picture} alt={user.username} />
-                  </div>
-                  <div className="right">
-                    <div className="info">
-                      <h3>{user.username}</h3>
-                      <small className="text-muted1">{user.email}</small>
-                    </div>
-                    <div className="manage d-flex ">
-                      <div
-                        className="edit warning"
-                        style={{ paddingRight: "10px" }}
-                        onClick={() => handleEditUser(user._id)}
-                      >
-                        <h3>Edit</h3>
-                      </div>
-                      <div
-                        className="delete danger"
-                        onClick={() => handleDeleteUser(user._id)}
-                      >
-                        <h3>Delete</h3>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <table>
+                <thead className="pt-5">
+                  <tr>
+                    <th>Date</th>
+                    <th>User Name</th>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allUsers.length > 0 ? (
+                    fetchUserData.length > 0 ? (
+                      fetchUserData.map((u: any) => (
+                        <tr key={u._id}>
+                          <td>{new Date(u.joinedAt).toLocaleDateString()}</td>
+                          <td>{u.fullname}</td>
+                          <td>{u.email}</td>
+                          <td className="warning">
+                            <span>
+                              {passwordVisibility[u._id] ? u.password : "*****"}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(u._id)}
+                              style={{
+                                border: "none",
+                                background: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {passwordVisibility[u._id] ? (
+                                <AiFillEyeInvisible />
+                              ) : (
+                                <AiFillEye />
+                              )}
+                            </button>
+                          </td>
+                          <td className="primary">
+                            <Button onClick={() => handleEditUser(u)}>
+                              Edit
+                            </Button>
+                          </td>
+                          <td>
+                            <Button onClick={() => handleDeleteUser(u._id)}>
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      allUsers.map((u: any) => (
+                        <tr key={u._id}>
+                          <td>{new Date(u.joinedAt).toLocaleDateString()}</td>
+                          <td>{u.fullname}</td>
+                          <td>{u.email}</td>
+                          <td className="warning">
+                            <span>
+                              {passwordVisibility[u._id] ? u.password : "*****"}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(u._id)}
+                              style={{
+                                border: "none",
+                                background: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {passwordVisibility[u._id] ? (
+                                <AiFillEyeInvisible />
+                              ) : (
+                                <AiFillEye />
+                              )}
+                            </button>
+                          </td>
+                          <td className="primary">
+                            <Button
+                              disabled={u.google_auth ? true : false}
+                              onClick={() => handleEditUser(u)}
+                            >
+                              Edit
+                            </Button>
+                          </td>
+                          <td>
+                            <Button
+                              disabled={u.google_auth ? true : false}
+                              onClick={() => handleDeleteUser(u._id)}
+                            >
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )
+                  ) : (
+                    <tr>
+                      <td colSpan={5}>No reports available</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
+
+      <Modal show={showEditModal} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit User</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formFullname">
+              <Form.Label>Fullname</Form.Label>
+              <Form.Control
+                type="text"
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formEmail">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleUpdateUser}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete User Modal */}
+      <DeleteAdminAccountModal
+        userId={selectedUser}
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDeleteSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 };

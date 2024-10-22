@@ -7,40 +7,61 @@ const Post = require("../models/blog");
 const jwt = require("jsonwebtoken");
 
 //Admin
-router.get("/", async (req, res) => {
-  try {
-    const admins = await Admin.find({}).lean();
-    res.json(admins);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error fetching user data" });
-  }
-});
-
-// router.get("/users", async (req, res) => {
+// router.get("/", async (req, res) => {
 //   try {
-//     const users = await User.find();
-//     res.status(200).json(users);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error });
+//     const admins = await Admin.find({}).lean();
+//     res.json(admins);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Error fetching user data" });
 //   }
 // });
+
+const formDatatoSend = (user) => {
+  const access_token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  return {
+    access_token,
+    _id: user._id,
+    role: user.is_admin == true ? "admin" : "user",
+    profile_picture: user.profile_picture,
+    username: user.username,
+    fullname: user.fullname,
+  };
+};
+
+router.post("/", async (req, res) => {
+  let { email, password } = req.body;
+
+  console.log("Email:", email);
+  console.log("Password:", password);
+
+  try {
+    const user = await Admin.findOne({ email: email });
+
+    if (!user) {
+      return res.status(403).json({ error: "ไม่พบผู้ใช้" });
+    }
+    if (password !== user.password) {
+      return res.status(403).json({ error: "รหัสผ่านไม่ถูกต้อง" });
+    }
+    console.log("formDatatoSend(user)", formDatatoSend(user));
+    return res.status(200).json(formDatatoSend(user));
+  } catch (err) {
+    console.log(err.message);
+    return res.status(500).json({ error: "เกิดข้อผิดพลาดในระบบ" });
+  }
+});
 
 // Middleware ตรวจสอบสิทธิ์ของแอดมิน
 const isAdmin = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
-    console.log("token in server", token);
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const admin = await User.findById(decoded.id);
-
-    console.log("Decoded: ", decoded);
-    console.log("Admin: ", admin);
 
     if (admin && admin.is_admin) {
       req.user = admin;
@@ -65,21 +86,25 @@ const isAdmin = async (req, res, next) => {
 //   }
 // });
 
-// waiting for add isAdmin function //
 router.get("/users", async (req, res) => {
   try {
-    const now = new Date();
-
-    // for fetch data last 24 Hour
-    // const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    // const userCount = await User.countDocuments({
-    //   createdAt: { $gte: last24Hours },
-    // });
-
-    // for fetch all
     const userCount = await User.countDocuments();
+    return res.json(userCount);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
-    res.json(userCount);
+router.get("/users/within24hour", async (req, res) => {
+  try {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const userCount = await User.countDocuments({
+      joinedAt: { $gte: twentyFourHoursAgo },
+    });
+    return res.json(userCount);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -88,14 +113,21 @@ router.get("/users", async (req, res) => {
 
 router.get("/viewer", async (req, res) => {
   try {
-    const now = new Date();
-
-    // for fetch data last 24 Hour
-    // const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    // const posts = await Post.find({ createdAt: { $gte: last24Hours } });
-
-    // for fetch all
     const posts = await Post.find();
+    res.json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/blogs/within24hour", async (req, res) => {
+  try {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const posts = await Post.find({
+      publishedAt: { $gte: twentyFourHoursAgo },
+    });
 
     res.json(posts);
   } catch (error) {
@@ -103,7 +135,20 @@ router.get("/viewer", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-// waiting for add isAdmin function //
+
+router.get("/blogs/:id", async (req, res) => {
+  const { id: user_id } = req.params;
+  try {
+    const posts = await Post.find({ author: user_id });
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({ message: "No posts found for this user" });
+    }
+    res.json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 // 2. รับข้อมูลผู้ใช้ตาม ID (แอดมิน)
 router.get("/users/:id", isAdmin, async (req, res) => {
@@ -159,7 +204,7 @@ router.delete("/users/:id", isAdmin, async (req, res) => {
 
 router.get("/:id", async function (req, res) {
   try {
-    const admin = await Admin.findById(req.params.id).lean();
+    const admin = await Admin.findById(req.params.id);
     if (!admin) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -167,54 +212,6 @@ router.get("/:id", async function (req, res) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error fetching user data" });
-  }
-});
-
-// router.post("/login", async (req, res) => {
-//   const { email, password } = req.body;
-
-//   try {
-//     const admin = await Admin.findOne({ email, password });
-
-//     if (admin) {
-//       res.json({ success: true, id: admin._id, message: "Login successful!" });
-//     } else {
-//       res.json({ success: false, message: "Invalid email or password." });
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ success: false, message: "Internal server error." });
-//   }
-// });
-
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const admin = await Admin.findOne({ email, password });
-
-    if (admin) {
-      // สร้าง token
-      const adminToken = jwt.sign(
-        { id: admin._id, email: admin.email },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "1d",
-        }
-      );
-
-      res.json({
-        success: true,
-        id: admin._id,
-        token: adminToken,
-        message: "Login successful!",
-      });
-    } else {
-      res.json({ success: false, message: "Invalid email or password." });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal server error." });
   }
 });
 

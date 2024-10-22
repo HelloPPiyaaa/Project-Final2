@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+require("../models/user");
+require("./blog");
+
 const reportSchema = new mongoose.Schema(
   {
     reason: {
@@ -16,10 +19,12 @@ const reportSchema = new mongoose.Schema(
     },
     reportedBy: {
       type: mongoose.Schema.Types.ObjectId,
+      required: true,
       ref: "User",
     },
     post: {
       type: mongoose.Schema.Types.ObjectId,
+      required: true,
       ref: "Post",
     },
   },

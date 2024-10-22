@@ -4,23 +4,26 @@ const notificationSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["like", "comment", "reply"],
+      enum: ["like", "comment", "reply", "follow"], // Added "follow"
       required: true,
     },
     blog: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "blogs",
+      ref: "Post",
     },
     notification_for: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      ref: "users",
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      ref: "users",
+    },
+    like: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Like",
     },
     comment: {
       type: mongoose.Schema.Types.ObjectId,
@@ -38,10 +41,20 @@ const notificationSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    entity: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "entityModel",
+      required: true,
+    },
+    entityModel: {
+      type: String,
+      enum: ["User"],
+      required: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Notifications", notificationSchema);
+module.exports = mongoose.model("Notification", notificationSchema);

@@ -217,12 +217,8 @@ const Feeds = () => {
 
   const handleReportPost = async () => {
     if (reportPostId && reportReason) {
-      console.log("reportPostId", reportPostId);
-      console.log("reportReason", reportReason);
       try {
         const userId = localStorage.getItem("userId");
-        console.log("userId", userId);
-
         if (!userId) {
           throw new Error("User is not logged in.");
         }

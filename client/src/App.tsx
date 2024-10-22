@@ -36,8 +36,13 @@ import PageNotFound from "./Screens/404";
 import ProfilePage from "./Screens/ProfilePage";
 import BlogPage from "./Screens/blog.page";
 import DashboardUser from "./Screens/DashboardUser";
+<<<<<<< HEAD
 
 import LoginAdmin from "./Screens/Admin/adminLogin";
+=======
+import LoginAdmin from "./Screens/Admin/adminLogin";
+import AccountPreferences from "./Screens/AccountPreferences";
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
 // import ForgotPassword from './Screens/Admin/ForgotPassword';
 // import VerifyOTP from "./Screens/Admin/VerifyOTP";
 // import ResetPassword from './Screens/Admin/ResetPassword';
@@ -45,6 +50,7 @@ import LoginAdmin from "./Screens/Admin/adminLogin";
 interface UserContextType {
   userAuth: {
     access_token: string | null;
+    _id?: string;
     username?: string;
     fullname?: string;
     profile_picture?: string;
@@ -94,9 +100,13 @@ function App() {
               element={<UserAuthForm type="สมัครสมาชิก" />}
             />
             <Route path="/" element={<HomePage />} />
+<<<<<<< HEAD
+=======
+            <Route path="/user/:id" element={<ProfilePage />} />
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
             <Route path="/search/:query" element={<SearchPage />} />
             <Route path="*" element={<PageNotFound />} />
-            <Route path="/user/:id" element={<ProfilePage />} />
+
             <Route path="/blog/:blog_id" element={<BlogPage />}></Route>
 
             <Route path="/dashboard/edit-profile" element={<EditProfile />} />
@@ -124,16 +134,28 @@ function App() {
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin/register" element={<RegisterAdmin />} />
+<<<<<<< HEAD
           <Route
             path="/admin/login"
             element={<LoginAdmin type="เข้าสู่ระบบแอดมิน" />}
           />
           <Route path="/admin" element={<AdminHome />} />
+=======
+          <Route path="/admin/login" element={<LoginAdmin type="admin" />} />
+          <Route path="/admin/:adminId" element={<AdminHome />} />
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/reset_password/:type/:id/:token"
             element={<ResetPassword />}
           />
+<<<<<<< HEAD
+=======
+          <Route
+            path="/account/preference/:id"
+            element={<AccountPreferences />}
+          />
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
           {/* <Route path="/forgot-password" element={<ForgotPassword />} />
              <Route path="/verify-otp" element={<VerifyOTP />} />
              <Route path="/reset-password" element={<ResetPassword />} /> */}

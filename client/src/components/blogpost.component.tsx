@@ -24,6 +24,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ content, author }) => {
     profile_picture = "",
     username = "Unknown User",
   } = author || {};
+
   return (
     <Link
       to={`/blog/${id}`}

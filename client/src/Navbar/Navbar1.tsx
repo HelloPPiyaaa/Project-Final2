@@ -78,7 +78,7 @@ const Navbar1: React.FC<Navbar1Props> = ({ children }) => {
     window.addEventListener("scroll", handleScroll);
     menu?.addEventListener("click", handleMenuClick);
 
-    const storedUserId = localStorage.getItem("userId");
+    const storedUserId = sessionStorage.getItem("userId");
     if (storedUserId) {
       setUserId(storedUserId);
     }

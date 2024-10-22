@@ -1,5 +1,5 @@
 import "../../misc/adminHome.css";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import logostart from "../../pic/logo-headV2.png";
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -10,8 +10,11 @@ import { MdManageAccounts, MdCategory, MdOutlinePostAdd } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import {
   fetchAdminProfile,
+  fetchAllBlog,
   fetchAllUser,
+  fetchUser,
   fetchUsersAPI,
+  fetchViews,
 } from "../../api/adminProfile";
 import { LuView } from "react-icons/lu";
 import { PiUsersThreeFill } from "react-icons/pi";
@@ -33,7 +36,7 @@ import { Button } from "react-bootstrap";
 import { Line } from "react-chartjs-2"; // ใช้แสดงกราฟ Line
 import "chart.js/auto"; // สำหรับการใช้งาน Chart.js
 
-interface Report {
+export interface Report {
   _id: string;
   reason: string;
   verified: boolean;
@@ -41,19 +44,37 @@ interface Report {
   createdAt: string;
   reportedBy: {
     _id: string;
-    firstname: string;
+    fullname: string;
   };
   post: {
     _id: string;
-    user: {
+    author: {
       _id: string;
-      firstname: string;
+      fullname: string;
+      banner: string;
       profile_picture: string;
     };
+    content: [
+      {
+        time: number;
+        blocks: [
+          {
+            id: string;
+            type: string;
+            data: {
+              text: string;
+            };
+          }
+        ];
+        version: string;
+      }
+    ];
     image: string;
     topic: string;
     detail: string;
-    category: string[];
+    tags: string[];
+    banner: string;
+    publishedAt: string;
     contentWithImages: {
       content: string;
       images?: string[];
@@ -61,24 +82,53 @@ interface Report {
   };
 }
 
+interface MonthData {
+  month: string;
+  publishedAt: number;
+}
+
+const transformData = (data: any[]): MonthData[] => {
+  // Create an array for the months
+  const monthsPost: MonthData[] = [
+    { month: "January", publishedAt: 0 },
+    { month: "February", publishedAt: 0 },
+    { month: "March", publishedAt: 0 },
+    { month: "April", publishedAt: 0 },
+    { month: "May", publishedAt: 0 },
+    { month: "June", publishedAt: 0 },
+    { month: "July", publishedAt: 0 },
+    { month: "August", publishedAt: 0 },
+    { month: "September", publishedAt: 0 },
+    { month: "October", publishedAt: 0 },
+    { month: "November", publishedAt: 0 },
+    { month: "December", publishedAt: 0 },
+  ];
+
+  // Iterate over the input data
+  data.forEach((item) => {
+    const monthIndex = new Date(Date.parse(item.month + " 1, 2024")).getMonth();
+    if (monthIndex >= 0 && monthIndex < 12) {
+      monthsPost[monthIndex].publishedAt += item.total_reads; // Sum up total_reads for each month
+    }
+  });
+
+  return monthsPost;
+};
+
 const AdminHome: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const API_BASE_URL = "http://localhost:3001";
+  const adminUsername = sessionStorage.getItem("userId");
 
   const [adminProfile, setAdminProfile] = useState<any>(true);
-
   const [userCounter, setUserCounter] = useState<number>(0);
   const [postCounter, setPostCounter] = useState<number>(0);
   const [totalViews, setTotalViews] = useState<number>(0);
-  const [postMonthly, setPostMonthly] = useState<any>();
+  const [getUser, setGetUser] = useState<any>();
+  const [getBlog, setGetBlog] = useState<any>();
+  const [getView, setGetView] = useState<any>();
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [tel, setTel] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
   const [selectedCate, setSelectedCate] = useState<string>("dashboard");
-
   const [selectedBlog, setSelectedBlog] = useState<string>("blog-all");
   const [selectedApprove, setSelectedApprove] =
     useState<string>("blog-success");
@@ -86,9 +136,11 @@ const AdminHome: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [users, setUsers] = useState<any>([]);
+  const [allUsers, setAllUsers] = useState<any>([]);
+  const [monthsPost, setMonthsPost] = useState<MonthData[]>([]);
 
   const handleShowModal = (report: any) => {
-    console.log("report on modal:", report);
     setSelectedReport(report);
     setShowModal(true);
   };
@@ -101,61 +153,31 @@ const AdminHome: React.FC = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/api/report");
-        console.log(response.data); // Log the data to check the structure
+        const response = await axios.get(`${API_BASE_URL}/api/report`);
         setReports(response.data);
       } catch (error) {
         console.error("Error fetching reports:", error);
       }
     };
-
     fetchReports();
   }, []);
 
   useEffect(() => {
-    console.log("Fetched Reports:", reports);
-  }, [reports]);
+    const fetchUsers = async () => {
+      try {
+        const responseUser = await axios.get(
+          `${API_BASE_URL}/profile/within24hour`
+        );
+        const responseAllUser = await axios.get(`${API_BASE_URL}/profile`);
+        setUsers(responseUser.data);
+        setAllUsers(responseAllUser.data);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      }
+    };
 
-  const convertPostsToGrowthData = (posts: any[]) => {
-    const monthNames = [
-      "มกราคม",
-      "กุมภาพันธ์",
-      "มีนาคม",
-      "เมษายน",
-      "พฤษภาคม",
-      "มิถุนายน",
-      "กรกฎาคม",
-      "สิงหาคม",
-      "กันยายน",
-      "ตุลาคม",
-      "พฤศจิกายน",
-      "ธันวาคม",
-    ];
-
-    const postCounts: { [key: number]: number } = {};
-
-    posts.forEach((post) => {
-      const date = new Date(post.createdAt);
-      const month = date.getMonth();
-      postCounts[month] = (postCounts[month] || 0) + 1;
-    });
-
-    const growthData = monthNames.map((monthName, index) => ({
-      month: monthName,
-      numberOfPosts: postCounts[index] || 0,
-    }));
-
-    return growthData;
-  };
-
-  const growthData = [
-    { month: "มกราคม", numberOfPosts: 20 },
-    { month: "กุมภาพันธ์", numberOfPosts: 30 },
-    { month: "มีนาคม", numberOfPosts: 40 },
-    { month: "เมษยน", numberOfPosts: 30 },
-    { month: "พฤษภาคม", numberOfPosts: 35 },
-    { month: "มิถุนายน", numberOfPosts: 40 },
-  ];
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     const sideMenu = document.querySelector("aside");
@@ -200,18 +222,12 @@ const AdminHome: React.FC = () => {
       try {
         if (id) {
           const profileData = await fetchAdminProfile(id);
-          setUsername(profileData.username);
           setAdminProfile(profileData);
-          setEmail(profileData.email);
-          setTel(profileData.tel);
-          setFirstname(profileData.firstname);
-          setLastname(profileData.lastname);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
     };
-
     fetchData();
   }, [id]);
 
@@ -219,17 +235,21 @@ const AdminHome: React.FC = () => {
     const fetchData = async () => {
       try {
         const userCountData = await fetchUsersAPI();
-        const AllUser = await fetchAllUser();
-
-        const totalViews = AllUser.reduce(
-          (acc: any, post: any) => acc + post.views,
+        const AllPost = await fetchAllBlog();
+        const blog = await fetchAllUser();
+        const User = await fetchUser();
+        const view = await fetchViews();
+        const totalViews = view.reduce(
+          (acc: any, post: any) => acc + post.total_reads,
           0
         );
-
+        setGetUser(User);
+        setGetBlog(blog);
         setUserCounter(userCountData);
-        setPostCounter(AllUser.length);
+        setPostCounter(blog.length);
         setTotalViews(totalViews);
-        setPostMonthly(convertPostsToGrowthData(AllUser));
+        const transformedData = transformData(view);
+        setMonthsPost(transformedData);
       } catch (error) {
         console.error("Error fetching user count:", error);
       }
@@ -249,6 +269,18 @@ const AdminHome: React.FC = () => {
 
   useEffect(() => {
     fetchReports();
+  }, []);
+
+  useEffect(() => {
+    const fetchViews = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/views`);
+        setGetView(response.data);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      }
+    };
+    fetchViews();
   }, []);
 
   const handleCategorySelection = (category: string) => {
@@ -280,14 +312,40 @@ const AdminHome: React.FC = () => {
   // สถานะเพื่อจัดการการ hover สำหรับ user-all และ view-all
   const [isUserHovered, setIsUserHovered] = useState(false);
   const [isViewHovered, setIsViewHovered] = useState(false);
+  const [monthsUser, setMonthsUser] = useState([
+    { month: "January", joinAt: 0 },
+    { month: "February", joinAt: 0 },
+    { month: "March", joinAt: 0 },
+    { month: "April", joinAt: 0 },
+    { month: "May", joinAt: 0 },
+    { month: "June", joinAt: 0 },
+    { month: "July", joinAt: 0 },
+    { month: "August", joinAt: 0 },
+    { month: "September", joinAt: 0 },
+    { month: "October", joinAt: 0 },
+    { month: "November", joinAt: 0 },
+    { month: "December", joinAt: 0 },
+  ]);
+
+  useEffect(() => {
+    if (getUser && getUser.length > 0) {
+      const updatedMonthsUser = [...monthsUser];
+      getUser.forEach((user: any) => {
+        const date = new Date(user.joinedAt);
+        const monthIndex = date.getUTCMonth();
+        updatedMonthsUser[monthIndex].joinAt += 1;
+      });
+      setMonthsUser(updatedMonthsUser);
+    }
+  }, [getUser]);
 
   // ข้อมูลตัวอย่างสำหรับกราฟ
   const userData = {
-    labels: ["june", "july", "august", "sept", "oct", "nov"],
+    labels: monthsUser.map((e) => e.month),
     datasets: [
       {
         label: "จำนวนผู้ใช้",
-        data: [0, 0, 0, 0, 3, 0], // ข้อมูลกราฟ
+        data: monthsUser?.map((e) => e.joinAt), // ข้อมูลกราฟ
         borderColor: "rgba(75, 192, 192, 1)",
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         fill: true,
@@ -296,11 +354,11 @@ const AdminHome: React.FC = () => {
   };
   // ข้อมูลตัวอย่างสำหรับกราฟของการเยี่ยมชม
   const viewData = {
-    labels: ["june", "july", "august", "sept", "oct", "nov"],
+    labels: monthsPost.map((e) => e.month),
     datasets: [
       {
         label: "จำนวนการเยี่ยมชม",
-        data: [0, 0, 0, 0, 19, 0], // ข้อมูลกราฟการเยี่ยมชม
+        data: monthsPost.map((e) => e.publishedAt), // ข้อมูลกราฟการเยี่ยมชม
         borderColor: "rgba(153, 102, 255, 1)",
         backgroundColor: "rgba(153, 102, 255, 0.2)",
         fill: true,
@@ -385,10 +443,10 @@ const AdminHome: React.FC = () => {
               <MdCategory />
               <h3>จัดการหมวดหมู่</h3>
             </a>
-            <a href="#">
+            <Link to={`/admin/login`}>
               <FiLogOut />
               <h3>ออกจากระบบ</h3>
-            </a>
+            </Link>
           </div>
         </aside>
 
@@ -487,11 +545,10 @@ const AdminHome: React.FC = () => {
             </div>
 
             <div className="recent-order">
-              <GrowthChart data={postMonthly} />
+              <GrowthChart data={getBlog} />
             </div>
           </div>
         )}
-
         {selectedCate === "dashboard" && (
           <div className="right">
             <div className="top">
@@ -513,9 +570,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -681,70 +738,6 @@ const AdminHome: React.FC = () => {
                     borderRadius: "2rem",
                   }}
                 >
-                  {/* <table>
-                    <thead className="pt-5">
-                      <tr>
-                        <th>User Name</th>
-                        <th>Date</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Details</th>
-                      </tr>
-                    </thead>
-                    {adminProfile && (
-                      <tbody>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="success">Approve</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="danger">Decline</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="success">Approve</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                        <tr>
-                          <td>{adminProfile.username}</td>
-                          <td></td>
-                          <td>คาเฟ่น่านั่งขอนแก่น</td>
-                          <td className="warning">Pending</td>
-                          <td className="primary">Details</td>
-                        </tr>
-                      </tbody>
-                    )}
-                  </table> */}
                   <table>
                     <thead className="pt-5">
                       <tr>
@@ -760,7 +753,11 @@ const AdminHome: React.FC = () => {
                         {reports.length > 0 ? (
                           reports.map((report) => (
                             <tr key={report._id}>
-                              <td>{report.reportedBy.firstname}</td>
+                              <td>
+                                {report.reportedBy
+                                  ? report.reportedBy.fullname
+                                  : ""}
+                              </td>
                               <td>
                                 {new Date(
                                   report.createdAt
@@ -828,7 +825,11 @@ const AdminHome: React.FC = () => {
                           reports.map((report) =>
                             !report.verified ? (
                               <tr key={report._id}>
-                                <td>{report.reportedBy.firstname}</td>
+                                <td>
+                                  {report.reportedBy
+                                    ? report.reportedBy.fullname
+                                    : ""}
+                                </td>
                                 <td>
                                   {new Date(
                                     report.createdAt
@@ -935,7 +936,11 @@ const AdminHome: React.FC = () => {
                                 report.verified &&
                                 report.status === "Verified" ? (
                                   <tr key={report._id}>
-                                    <td>{report.reportedBy.firstname}</td>
+                                    <td>
+                                      {report.reportedBy
+                                        ? report.reportedBy.fullname
+                                        : ""}
+                                    </td>
                                     <td>
                                       {new Date(
                                         report.createdAt
@@ -989,7 +994,11 @@ const AdminHome: React.FC = () => {
                             reports.map((report) =>
                               report.status === "Decline" ? (
                                 <tr key={report._id}>
-                                  <td>{report.reportedBy.firstname}</td>
+                                  <td>
+                                    {report.reportedBy
+                                      ? report.reportedBy.fullname
+                                      : ""}
+                                  </td>
                                   <td>
                                     {new Date(
                                       report.createdAt
@@ -1047,9 +1056,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -1141,7 +1150,9 @@ const AdminHome: React.FC = () => {
             </div>
           </div>
         )}
-        {selectedCate === "manage-user" && <ManageUser />}
+        {selectedCate === "manage-user" && (
+          <ManageUser users={users} allUsers={allUsers} />
+        )}
         {selectedCate === "manage-user" && (
           <div className="right">
             <div className="top">
@@ -1163,9 +1174,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -1268,9 +1279,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />
@@ -1363,7 +1374,7 @@ const AdminHome: React.FC = () => {
           </div>
         )}
 
-        {selectedCate === "manage-cate" && <ManageCate />}
+        {selectedCate === "manage-cate" && <ManageCate blogsData={getBlog} />}
         {selectedCate === "manage-cate" && (
           <div className="right">
             <div className="top">
@@ -1385,9 +1396,9 @@ const AdminHome: React.FC = () => {
                 <div className="profile">
                   <div className="info">
                     <p>
-                      Hello, <b>{adminProfile.firstname}</b>
+                      Hello, <b>{adminUsername}</b>
                     </p>
-                    <small className="text-muted1">Admin</small>
+                    <small className="text-muted1">{adminUsername}</small>
                   </div>
                   <div className="profile-photo">
                     <img src={Pro} alt="" />

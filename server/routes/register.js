@@ -1,7 +1,4 @@
 const express = require("express");
-const passport = require("passport");
-const FacebookStrategy = require("passport-facebook").Strategy;
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const router = express.Router();
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
@@ -14,7 +11,11 @@ const formDatatoSend = (user) => {
   const access_token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
   return {
     access_token,
+<<<<<<< HEAD
     userId: user._id,
+=======
+    _id: user._id,
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
     profile_picture: user.profile_picture,
     username: user.username,
     fullname: user.fullname,

@@ -4,8 +4,8 @@ const User = require("../models/user");
 const Post = require("../models/blog");
 const Comment = require("../models/comment");
 const Like = require("../models/like");
-const Notification = require("../models/notification");
 const SavedPost = require("../models/save");
+const Notification = require("../models/notifaications");
 const auth = require("./authMiddleware");
 const mongoose = require("mongoose");
 
@@ -34,8 +34,6 @@ router.get("/search", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const { user, topic, detail, category, image, contentWithImages } = req.body;
-
-  console.log("Request body:", req.body); // แสดงข้อมูลที่ได้รับ
 
   if (!user || !topic || !category || !image) {
     return res.status(400).json({ message: "All fields are required" });

@@ -73,7 +73,11 @@ export const loginAdmin = async (
     if (responseData.token && responseData.id) {
       localStorage.setItem("adminToken", responseData.token);
       localStorage.setItem("adminId", responseData.id);
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
       // Optional: Use React Router for redirection instead
       // useHistory().push(`/admin/${responseData.id}`);
       window.location.href = `/admin/${responseData.id}`;

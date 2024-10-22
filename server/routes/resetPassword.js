@@ -5,10 +5,66 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const router = express.Router();
 
+<<<<<<< HEAD
 router.post("/:type/:id/:token", async (req, res) => {
   const { id, token, type } = req.params;
   const { password } = req.body;
 
+=======
+const formDatatoSend = (user) => {
+  const access_token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  return {
+    access_token,
+    _id: user._id,
+    profile_picture: user.profile_picture,
+    username: user.username,
+    fullname: user.fullname,
+  };
+};
+
+router.post("/", (req, res) => {
+  let { email, password } = req.body;
+
+  console.log("Email:", email);
+  console.log("Password:", password);
+
+  Admin.findOne({ email: email })
+    .then((user) => {
+      if (!user) {
+        return res.status(403).json({ error: "ไม่พบผู้ใช้" });
+      }
+      if (!user.google_auth) {
+        bcrypt.compare(password, user.password, (err, result) => {
+          if (err) {
+            return res
+              .status(403)
+              .json({ error: "เกิดข้อผิดพลาดขณะเข้าสู่ระบบ โปรดลองอีกครั้ง" });
+          }
+
+          if (!result) {
+            return res.status(403).json({ error: "รหัสผ่านไม่ถูกต้อง" });
+          } else {
+            console.log("formDatatoSend(user)", formDatatoSend(user));
+            return res.status(200).json(formDatatoSend(user));
+          }
+        });
+      } else {
+        return res.status(403).json({
+          error:
+            "บัญชีถูกสร้างด้วยบัญชี Google แล้ว โปรดเข้าสู่ระบบด้วย Google",
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+router.post("/:type/:id/:token", async (req, res) => {
+  const { id, token, type } = req.params;
+  const { password } = req.body;
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
   jwt.verify(token, "jwt_secret_key", (err, decoded) => {
     if (err) {
       return res.json({ Status: "Error with token" });
@@ -18,7 +74,10 @@ router.post("/:type/:id/:token", async (req, res) => {
         .then((hash) => {
           // ตรวจสอบว่าประเภทเป็น user หรือ admin แล้วอัปเดตรหัสผ่าน
           const model = type === "admin" ? Admin : User; // เลือก model ที่เหมาะสม
+<<<<<<< HEAD
 
+=======
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
           model
             .findByIdAndUpdate({ _id: id }, { password: hash })
             .then((u) => res.send({ Status: "Success" }))

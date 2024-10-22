@@ -1,22 +1,56 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 
-interface GrowthChartData {
-  month: string;
-  numberOfPosts: number;
+interface GrowthChartProps {
+  data: any[];
 }
 
-interface GrowthChartProps {
-  data: GrowthChartData[];
+interface BlogCountByMonth {
+  month: string;
+  blogCount: number;
+}
+
+function transformBlogData(blogs: any[]): BlogCountByMonth[] {
+  const monthCount: { [key: string]: number } = {};
+
+  if (blogs && Array.isArray(blogs)) {
+    blogs.forEach((blog) => {
+      const date = new Date(blog.publishedAt);
+      const monthYear = date.toLocaleString("default", {
+        month: "short",
+        year: "numeric",
+      });
+
+      monthCount[monthYear] = (monthCount[monthYear] || 0) + 1;
+    });
+  }
+
+  const emptyMonths: BlogCountByMonth[] = Array.from({ length: 7 }, (_, i) => {
+    const monthDate = new Date();
+    monthDate.setMonth(monthDate.getMonth() - i);
+    const monthYear = monthDate.toLocaleString("default", {
+      month: "short",
+      year: "numeric",
+    });
+    return { month: monthYear, blogCount: monthCount[monthYear] || 0 };
+  });
+
+  return emptyMonths.reverse();
 }
 
 const GrowthChart: React.FC<GrowthChartProps> = ({ data }) => {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
+  const [charts, setCharts] = useState<BlogCountByMonth[]>([]);
 
   useEffect(() => {
-    if (chartRef && chartRef.current) {
-      if (chartInstance.current !== null) {
+    const transformedData = transformBlogData(data);
+    setCharts(transformedData);
+  }, [data]);
+
+  useEffect(() => {
+    if (chartRef.current) {
+      if (chartInstance.current) {
         chartInstance.current.destroy();
       }
 
@@ -25,11 +59,11 @@ const GrowthChart: React.FC<GrowthChartProps> = ({ data }) => {
         chartInstance.current = new Chart(ctx, {
           type: "line",
           data: {
-            labels: data?.map((item) => item.month),
+            labels: charts.map((item) => item.month),
             datasets: [
               {
                 label: "ยอดการโพสต์ทั้งหมด",
-                data: data?.map((item) => item.numberOfPosts),
+                data: charts.map((item) => item.blogCount),
                 borderColor: "rgba(75, 192, 192, 1)",
                 borderWidth: 2,
               },
@@ -39,13 +73,21 @@ const GrowthChart: React.FC<GrowthChartProps> = ({ data }) => {
             scales: {
               y: {
                 beginAtZero: true,
+                grid: {
+                  display: false,
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
               },
             },
           },
         });
       }
     }
-  }, [data]);
+  }, [charts]);
 
   return <canvas ref={chartRef} style={{ height: "120px" }} />;
 };

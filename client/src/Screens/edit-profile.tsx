@@ -5,7 +5,8 @@ import { IoCamera } from "react-icons/io5";
 import { FaUserFriends } from "react-icons/fa";
 import { Form, Col, Row, Alert, Container } from "react-bootstrap";
 import Footer from "../Navbar/footer";
-import Navbar2 from "../Navbar/Navbar1";
+import { FollowerModal } from "./follower-modal";
+import { FollowingModal } from "./following-modal";
 
 const EditProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -231,7 +232,7 @@ const EditProfile: React.FC = () => {
         {userProfile && (
           <div className="follow-icon">
             <FaUserFriends />
-            <h3>{userProfile.following.length} following</h3>
+            <FollowerModal userProfile={userProfile} />
           </div>
         )}
 
@@ -240,7 +241,7 @@ const EditProfile: React.FC = () => {
         {userProfile && (
           <div className="follow-icon">
             <FaUserFriends />
-            <h3>{userProfile.followers.length} followers</h3>
+            <FollowingModal userProfile={userProfile} />
           </div>
         )}
       </div>

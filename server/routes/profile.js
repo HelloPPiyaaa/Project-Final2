@@ -1,6 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
+<<<<<<< HEAD
+=======
+const Post = require("../models/blog");
+const Notification = require("../models/notifaications");
+const Like = require("../models/like");
+const Comment = require("../models/comment");
+const Report = require("../models/report");
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
 const bcrypt = require("bcrypt");
 
 // Route URL to get all users
@@ -11,6 +19,23 @@ router.get("/", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error fetching user data" });
+<<<<<<< HEAD
+=======
+  }
+});
+
+router.get("/within24hour", async (req, res) => {
+  try {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const users = await User.find({
+      joinedAt: { $gte: twentyFourHoursAgo },
+    }).lean();
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error fetching user data" });
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
   }
 });
 
@@ -46,6 +71,33 @@ router.post("/edit-profile/update/:id", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+router.put("/edit-profile/update-info/:id", async (req, res) => {
+  const userId = req.params.id;
+  const { fullname, email } = req.body;
+
+  try {
+    // Check if the new email already exists for another user
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser._id.toString() !== userId) {
+      return res.status(400).json({ error: "Email is already in use." });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { fullname, email },
+      { new: true }
+    );
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
 // Add this route in your existing user routes file
 router.post("/edit-profile/notifications/:id", async (req, res) => {
   const userId = req.params.id;
@@ -76,17 +128,35 @@ router.delete("/edit-profile/delete/:id", async function (req, res, next) {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
     const isMatch = await bcrypt.compare(req.body.password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Incorrect password" });
     }
+<<<<<<< HEAD
 
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: "User deleted successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error deleting user" });
+=======
+    await Post.deleteMany({ author: req.params.id });
+    await Notification.deleteMany({ user: req.params.id });
+    await Like.deleteMany({ user: req.params.id });
+    await Comment.deleteMany({ blog_author: req.params.id });
+    await Report.deleteMany({
+      $or: [{ post: req.params.id }, { reportedBy: req.params.id }],
+    });
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user and related data: ", err);
+    res.status(500).json({ error: "Error deleting user and related data" });
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
   }
 });
 

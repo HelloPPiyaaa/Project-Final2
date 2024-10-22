@@ -1,22 +1,36 @@
 const express = require("express");
 const router = express.Router();
-const Notification = require("../models/notification");
+const Notification = require("../models/notifaications");
+const Report = require("../models/report");
+const Post = require("../models/blog");
+const Comment = require("../models/comment");
+const Like = require("../models/like");
 
-// Fetch notifications for a user
-router.get("/", async (req, res) => {
-  const { userId } = req.query;
+router.get("/:id", async (req, res) => {
+  const { id: userId } = req.params; // Extract userId from req.params
 
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
   }
 
   try {
-    const notifications = await Notification.find({ user: userId })
-      .populate("user", "username email firstname lastname profile_picture")
-      .sort({ updatedAt: -1 });
+    const userNotifications = await Notification.find({
+      notification_for: userId,
+    })
+      .populate("user")
+      .populate("blog")
+      .populate("notification_for")
+      .exec();
 
-    res.json(notifications);
+    if (!userNotifications.length) {
+      return res
+        .status(404)
+        .json({ message: "No notifications found for this user" });
+    }
+
+    res.json(userNotifications);
   } catch (error) {
+    console.error("Error fetching notifications:", error);
     res
       .status(500)
       .json({ message: "Error fetching notifications: " + error.message });
@@ -55,7 +69,7 @@ router.patch("/:id/mark-as-read", async (req, res) => {
   try {
     const notification = await Notification.findByIdAndUpdate(
       id,
-      { isRead: true },
+      { seen: true },
       { new: true }
     );
 

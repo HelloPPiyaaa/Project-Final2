@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
-import { API_BASE_URL } from "../api/post";
+import { addReport, API_BASE_URL } from "../api/post";
 import {
   createContext,
   Dispatch,
@@ -20,6 +20,8 @@ import CommentsContainer, {
   fetchComments,
 } from "../components/comments.components";
 
+import { Button, Form, Modal } from "react-bootstrap";
+
 interface BlogContextType {
   blog: Partial<Post>;
   setBlog: Dispatch<SetStateAction<Partial<Post>>>;
@@ -34,6 +36,7 @@ interface BlogContextType {
 }
 
 export const BlogState: Partial<Post> = {
+  _id: "",
   blog_id: "",
   topic: "",
   des: "",
@@ -67,7 +70,7 @@ const BlogPage = () => {
   const [blog, setBlog] = useState(BlogState);
   const [similarBlogs, setSimilarBlogs] = useState<Post[] | null>(null);
   const [loading, setLoading] = useState(true);
-  let { topic, content, banner, author, publishedAt } = blog;
+  let { _id, topic, content, banner, author, publishedAt } = blog;
   const [islikedByUser, setLikeByUser] = useState(false);
   const [issavedByUser, setSaveByUser] = useState(false);
   const [commentWrapper, setCommentWrapper] = useState(false);
@@ -76,6 +79,47 @@ const BlogPage = () => {
   const fullname = author?.fullname || "Unknown Author";
   const author_username = author?.username || "Unknown Username";
   const profile_picture = author?.profile_picture || "";
+
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportPostId, setReportPostId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState("");
+  const userId = sessionStorage.getItem("userId");
+
+  const handleShowReportModal = (id: string | undefined) => {
+    setReportPostId(id || "");
+    setShowReportModal(true);
+  };
+
+  const handleCloseReportModal = () => {
+    setShowReportModal(false);
+    setReportPostId(null);
+    setReportReason("");
+  };
+
+  const handleReportPost = async () => {
+    if (reportPostId && reportReason) {
+      try {
+        if (!userId) {
+          throw new Error("User is not logged in.");
+        }
+
+        const response = await addReport(reportPostId, reportReason, userId);
+
+        if (response && response.status === 201) {
+          alert("Report submitted successfully!");
+        } else {
+          alert("Failed to submit the report.");
+        }
+
+        handleCloseReportModal();
+      } catch (error) {
+        console.error("Failed to report post:", error);
+        alert("An error occurred while submitting the report.");
+      }
+    } else {
+      console.log("Please enter a reason for the report.");
+    }
+  };
 
   const fetchBlog = () => {
     axios
@@ -86,8 +130,6 @@ const BlogPage = () => {
           setParentCommentCountFun: setTotalParentCommentsLoaded,
         });
         setBlog(blog);
-
-        console.log("after", blog);
 
         axios
           .post(API_BASE_URL + "/search-blogs", {
@@ -147,7 +189,21 @@ const BlogPage = () => {
             <img src={banner} alt="banner" style={{ aspectRatio: "16/9" }} />
 
             <div className="mt-2">
-              <h2 className="mt-4 fs-3">{topic}</h2>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h2 className="mt-4 fs-3">{topic}</h2>
+                <p
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleShowReportModal(_id)}
+                >
+                  report
+                </p>
+              </div>
 
               <div className="detail-user d-flex  justify-content-between my-4">
                 <div className="d-flex gap-2 align-items-start">
@@ -162,7 +218,7 @@ const BlogPage = () => {
                     {fullname}
                     <br />@
                     <Link
-                      to={`/user/${author_username}`}
+                      to={`/user/${author?._id}`}
                       className="underline "
                       style={{ color: "inherit" }}
                     >
@@ -177,7 +233,83 @@ const BlogPage = () => {
               </div>
             </div>
 
-            <BlogInteraction />
+            <Modal
+              show={showReportModal}
+              onHide={handleCloseReportModal}
+              centered
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>รายงานปัญหา</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form>
+                  <Form.Group>
+                    <Form.Check
+                      type="radio"
+                      label="เนื้อหาไม่เหมาะสม"
+                      name="reportReason"
+                      value="เนื้อหาไม่เหมาะสม"
+                      onChange={(e) => setReportReason(e.target.value)}
+                      checked={reportReason === "เนื้อหาไม่เหมาะสม"}
+                    />
+                    <Form.Check
+                      type="radio"
+                      label="เนื้อหามีการกลั่นแกล้งหรือคุกคาม"
+                      name="reportReason"
+                      value="เนื้อหามีการกลั่นแกล้งหรือคุกคาม"
+                      onChange={(e) => setReportReason(e.target.value)}
+                      checked={
+                        reportReason === "เนื้อหามีการกลั่นแกล้งหรือคุกคาม"
+                      }
+                    />
+                    <Form.Check
+                      type="radio"
+                      label="เนื้อหามีการขายหรือส่งเสริมสินค้าต้องห้าม"
+                      name="reportReason"
+                      value="เนื้อหามีการขายหรือส่งเสริมสินค้าต้องห้าม"
+                      onChange={(e) => setReportReason(e.target.value)}
+                      checked={
+                        reportReason ===
+                        "เนื้อหามีการขายหรือส่งเสริมสินค้าต้องห้าม"
+                      }
+                    />
+                    <Form.Check
+                      type="radio"
+                      label="ข้อมูลเท็จ"
+                      name="reportReason"
+                      value="ข้อมูลเท็จ"
+                      onChange={(e) => setReportReason(e.target.value)}
+                      checked={reportReason === "ข้อมูลเท็จ"}
+                    />
+                    <Form.Check
+                      type="radio"
+                      label="การแอบอ้างบุคคลอื่น"
+                      name="reportReason"
+                      value="การแอบอ้างบุคคลอื่น"
+                      onChange={(e) => setReportReason(e.target.value)}
+                      checked={reportReason === "การแอบอ้างบุคคลอื่น"}
+                    />
+                    <Form.Check
+                      type="radio"
+                      label="สแปม"
+                      name="reportReason"
+                      value="สแปม"
+                      onChange={(e) => setReportReason(e.target.value)}
+                      checked={reportReason === "สแปม"}
+                    />
+                  </Form.Group>
+                </Form>
+              </Modal.Body>
+
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseReportModal}>
+                  ยกเลิก
+                </Button>
+                <Button variant="danger" onClick={handleReportPost}>
+                  รายงานปัญหา
+                </Button>
+              </Modal.Footer>
+            </Modal>
 
             <div className="my-4 blog-page-content">
               {content &&

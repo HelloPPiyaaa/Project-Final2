@@ -2,7 +2,7 @@ const API_BASE_URL = "http://localhost:3001";
 
 // Function to fetch all questions
 export const fetchQuestionsAPI = async () => {
-  const token = localStorage.getItem("userId");
+  const token = sessionStorage.getItem("userId");
   if (!token) {
     console.error("No token found, redirecting to login...");
     return null;
@@ -30,7 +30,7 @@ export const addQuestionAPI = async (
   answer: string,
   createdBy: string
 ) => {
-  const token = localStorage.getItem("userId");
+  const token = sessionStorage.getItem("userId");
   if (!token) {
     console.error("No token found, redirecting to login...");
     return null;
@@ -59,7 +59,7 @@ export const updateQuestionAPI = async (
   topic: string,
   answer: string
 ) => {
-  const token = localStorage.getItem("userId"); // Get token from localStorage
+  const token = sessionStorage.getItem("userId"); // Get token from sessionStorage
 
   if (!token) {
     throw new Error("No admin token found. Unauthorized request.");
@@ -84,7 +84,7 @@ export const updateQuestionAPI = async (
 
 // Function to delete a question
 export const deleteQuestionAPI = async (id: string) => {
-  const token = localStorage.getItem("userId");
+  const token = sessionStorage.getItem("userId");
   if (!token) {
     console.error("No token found, redirecting to login...");
     return null;

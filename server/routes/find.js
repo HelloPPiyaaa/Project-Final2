@@ -69,10 +69,9 @@ router.get("/find/:userId", async (req, res) => {
 });
 
 router.post("/get-profile", (req, res) => {
-  let { username } = req.body;
-  console.log(req.body);
+  let { id } = req.body;
 
-  User.findOne({ username: username })
+  User.findOne({ _id: id })
     .select("-password -google_auth -updatedAt -blogs")
     .then((user) => {
       return res.status(200).json(user);

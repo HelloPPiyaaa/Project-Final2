@@ -4,7 +4,15 @@ import "../../misc/login.css";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../App";
 import toast from "react-hot-toast";
+<<<<<<< HEAD
 import { storeInSession } from "../../common/session";
+=======
+import {
+  storeInSession,
+  userInSession,
+  userIdInSession,
+} from "../../common/session";
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
 
 interface LoginPageProps {
   type: string;
@@ -23,6 +31,7 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+<<<<<<< HEAD
 
   const userAuthThroughServer = (
     serverRoute: string,
@@ -104,6 +113,47 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
       });
     };
   }, []);
+=======
+
+  const userAuthThroughServer = (
+    serverRoute: string,
+    formData: { [key: string]: any }
+  ) => {
+    fetch(API_URL + serverRoute, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((errorData) => {
+            throw new Error(errorData.error || "Error occurred");
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        storeInSession("user", JSON.stringify(data));
+        setUserAuth(data);
+        userInSession("userId", data.username);
+        userIdInSession("adminId", data._id);
+        navigate(`/admin/${data._id}`);
+      })
+      .catch((error) => {
+        // Set the error message in the alertMessage state
+        setAlertMessage(error.message); // Use the error message
+        toast.error(error.message);
+      });
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setAlertMessage(null); // Clear any previous error messages
+    userAuthThroughServer("/admin", { email, password });
+  };
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
 
   return (
     <div className="login-container">
@@ -151,6 +201,18 @@ const Login: React.FC<LoginPageProps> = ({ type }) => {
                     <label className="label-login">รหัสผ่าน</label>
                   </div>
 
+<<<<<<< HEAD
+=======
+                  {alertMessage && (
+                    <h3
+                      className="error-message"
+                      style={{ color: "red", fontSize: "1rem" }}
+                    >
+                      {alertMessage}
+                    </h3>
+                  )}
+
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
                   <button type="submit" className="sign-btn">
                     เข้าสู่ระบบ
                   </button>

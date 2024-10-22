@@ -44,6 +44,7 @@ const RegisterAdmin: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
 
     if (password !== passwordConfirm) {
       // ถ้ารหัสผ่านไม่ตรงกัน แสดงข้อความแจ้งเตือนและยกเลิกการส่งฟอร์ม
@@ -68,6 +69,30 @@ const RegisterAdmin: React.FC = () => {
     } catch (error) {
       console.error("Registration failed:", error);
 
+=======
+    if (password !== passwordConfirm) {
+      setPasswordMatchError(true);
+      return;
+    }
+
+    try {
+      const admin = {
+        username,
+        email,
+        password,
+        tel,
+        firstname,
+        lastname,
+      };
+      const response = await registerAdmin(admin);
+      console.log(response); // ตรวจสอบ response ใน Console Log
+
+      displayAlert("ลงทะเบียนสำเร็จ!");
+      navigate("/admin/login");
+    } catch (error) {
+      console.error("Registration failed:", error);
+
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
       displayAlert("คุณมีบัญชีอยู่แล้ว โปรดเข้าสู่ระบบ");
     }
   };

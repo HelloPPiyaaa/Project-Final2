@@ -122,6 +122,11 @@ const notificationRouter = require("./routes/notifications");
 const questionRouter = require("./routes/QuestionRoutes");
 const reportRouter = require("./routes/reports");
 
+const User = require("./models/user");
+const BlogCreated = require("./routes/blog");
+const Post = require("./models/blog");
+const viewsRouter = require("./routes/view");
+
 app.use("/notifications", notificationRouter);
 app.use("/register", registerRouter);
 app.use("/login", loginRouter);
@@ -138,6 +143,9 @@ app.use("/admin/register", AdminRegister);
 app.use("/api/questions", questionRouter);
 app.use("/api/report", reportRouter);
 
+app.use("/uploads", express.static("uploads"));
+app.use("/create-blog", BlogCreated);
+app.use("/views", viewsRouter);
 
 const generateUsername = async (email) => {
   const { nanoid } = await import("nanoid");
@@ -158,6 +166,8 @@ const formDatatoSend = (user) => {
   return {
     access_token,
     userId: user._id,
+
+    _id: user._id,
     profile_picture: user.profile_picture,
     username: user.username,
     fullname: user.fullname,

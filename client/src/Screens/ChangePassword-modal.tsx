@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
+<<<<<<< HEAD
+=======
+import "../misc/AccountPreferences.css";
+
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
 
 const ChangePasswordModal: React.FC<{
   userId: string | null;
@@ -13,7 +18,10 @@ const ChangePasswordModal: React.FC<{
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [countdown, setCountdown] = useState(5);
+<<<<<<< HEAD
   const API_BASE_URL = "http://localhost:3001";
+=======
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
 
   const validatePassword = (password: string) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,20}$/;
@@ -40,7 +48,11 @@ const ChangePasswordModal: React.FC<{
 
     try {
       const response = await axios.post(
+<<<<<<< HEAD
         `${API_BASE_URL}/profile/changepassword/${userId}`,
+=======
+        `http://localhost:3001/profile/changepassword/${userId}`,
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
         {
           _id: userId,
           oldPassword,
@@ -78,24 +90,40 @@ const ChangePasswordModal: React.FC<{
   }, [countdown, successMessage, onClose]);
 
   return (
+<<<<<<< HEAD
     <Modal show={show} onHide={onClose}>
       <Modal.Header closeButton>
         <Modal.Title>Change Password</Modal.Title>
+=======
+    <Modal show={show} onHide={onClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>เปลี่นรหัสผ่าน</Modal.Title>
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
       </Modal.Header>
       <Modal.Body>
         <Form>
           <Form.Group controlId="oldPassword">
+<<<<<<< HEAD
             <Form.Label>Old Password</Form.Label>
             <Form.Control
               type="password"
               placeholder="Enter Old Password"
+=======
+            <Form.Label>รหัสผ่านเก่า</Form.Label>
+            <Form.Control
+              type="password"
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
             />
           </Form.Group>
 
           <Form.Group controlId="newPassword">
+<<<<<<< HEAD
             <Form.Label>New Password</Form.Label>
+=======
+            <Form.Label>รหัสผ่านใหม่</Form.Label>
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
             <Form.Control
               type="password"
               placeholder="Enter New Password"
@@ -105,7 +133,11 @@ const ChangePasswordModal: React.FC<{
           </Form.Group>
 
           <Form.Group controlId="confirmPassword">
+<<<<<<< HEAD
             <Form.Label>Confirm New Password</Form.Label>
+=======
+            <Form.Label>ยืนยันรหัสผ่านใหม่</Form.Label>
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
             <Form.Control
               type="password"
               placeholder="Confirm New Password"
@@ -124,12 +156,30 @@ const ChangePasswordModal: React.FC<{
         </Form>
       </Modal.Body>
       <Modal.Footer>
+<<<<<<< HEAD
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
         <Button variant="primary" onClick={handleSave}>
           Save changes
         </Button>
+=======
+      <Button
+          style={{
+            backgroundColor: "#333" /* สีพื้นหลัง */,
+            color: "white" /* สีข้อความ */,
+            borderRadius: "8px" /* มุมโค้ง */,
+            padding: "10px 20px" /* ขนาด padding */,
+            border: "none" /* ไม่มีเส้นขอบ */,
+            textTransform: "none" /* ข้อความไม่เปลี่ยนรูปแบบ */,
+          }}onClick={handleSave}>
+          ยืนยัน
+        </Button>
+        <Button variant="secondary" onClick={onClose}>
+          ยกเลิก
+        </Button>
+        
+>>>>>>> 760079d54e9c588ed8a78b9d2fd7d8391e1100b7
       </Modal.Footer>
     </Modal>
   );

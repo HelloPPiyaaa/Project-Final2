@@ -5,7 +5,7 @@ import { Link, Navigate } from "react-router-dom";
 import AnimationWrapper from "./page-animation";
 import { useContext, useEffect, useRef } from "react";
 import { Toaster, toast } from "react-hot-toast";
-import { storeInSession } from "../common/session";
+import { storeInSession, userInSession } from "../common/session";
 import { UserContext } from "../App";
 import { authWithGoogle } from "../common/firebase";
 
@@ -26,7 +26,6 @@ const UserAuthForm: React.FC<LoginPageProps> = ({ type }) => {
     serverRoute: string,
     formData: { [key: string]: any }
   ) => {
-    console.log("Server Route:", serverRoute);
     fetch(API_URL + serverRoute, {
       method: "POST",
       headers: {
@@ -49,6 +48,7 @@ const UserAuthForm: React.FC<LoginPageProps> = ({ type }) => {
           console.error("User ID not found in response data:", data);
         }
         storeInSession("user", JSON.stringify(data));
+        userInSession("userId", data._id);
         setUserAuth(data);
       })
       .catch((error) => {
@@ -75,8 +75,6 @@ const UserAuthForm: React.FC<LoginPageProps> = ({ type }) => {
     form.forEach((value, key) => {
       formData[key] = value;
     });
-
-    console.log("formData:", formData);
 
     const { fullname, email, password } = formData;
     if (fullname) {
